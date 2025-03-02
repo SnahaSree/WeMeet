@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "901399559427",
+    "project_id": "wemeet-4528c",
+    "storage_bucket": "wemeet-4528c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901399559427:android:64c5fceb6d0f45edbb3d36",
+        "android_client_info": {
+          "package_name": "com.example.we_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQYfKk6cG8XiuJIeoDx13l_zaAsePMdeg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
