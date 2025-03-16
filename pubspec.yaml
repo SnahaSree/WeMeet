@@ -55,6 +55,11 @@ dependencies:
   lottie: ^3.3.1
   font_awesome_flutter: ^10.8.0
   curved_navigation_bar: ^1.0.6
+  lucide_icons_flutter: ^1.2.9
+  emoji_picker_flutter: ^4.3.0
+  giphy_picker: ^3.0.2
+  #jitsi_meet_flutter_sdk: ^11.1.1
+  flutter_highlight: ^0.7.0
   get: ^4.7.2
   shared_preferences: ^2.5.2
   provider: ^6.1.2
@@ -124,6 +129,9 @@ flutter:
       - family: DancingScript
         fonts:
           - asset: assets/fonts/DancingScript-Regular.ttf
+      - family: Lobster
+        fonts:
+          - asset: assets/fonts/Lobster-Regular.ttf
 
       # fonts:
     # - family: Pacifico

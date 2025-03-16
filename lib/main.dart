@@ -9,9 +9,12 @@ import 'home_screen.dart';
 import 'onboarding_screen.dart';
 import 'theme_provider.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+
 
   runApp(
     MultiProvider(

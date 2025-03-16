@@ -4,6 +4,7 @@ import 'package:cloudinary_sdk/cloudinary_sdk.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'theme_provider.dart';
 import 'dart:io';
 
@@ -201,7 +202,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
-      appBar: AppBar(title: Text("Dashboard")),
+      appBar: AppBar(
+          title: Text("Dashboard"),
+        backgroundColor: Colors.purple,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -224,7 +228,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             TextField(
               controller: _nameController,
               onChanged: _onNameChanged,
-              decoration: InputDecoration(labelText: "Edit Name"),
+              decoration: InputDecoration(
+                  labelText: "Edit Name",
+                  prefixIcon: Icon(LucideIcons.user, color: Colors.purple),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),),
             ),
 
             SizedBox(height: 16),
@@ -241,7 +248,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // Theme Change
             ListTile(
               title: Text("Change Theme"),
-              trailing: Icon(Icons.arrow_forward),
+              //trailing: Icon(Icons.arrow_forward),
+              trailing: Icon(LucideIcons.palette, color: Colors.purple),
               onTap: () {
                 _showThemeDialog(context, themeProvider);// You can add a logic here for changing the theme
               },
@@ -249,7 +257,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             ListTile(
               title: Text("About Us"),
-              trailing: Icon(Icons.info),
+              //trailing: Icon(Icons.info),
+              trailing: Icon(LucideIcons.info, color: Colors.purple),
               onTap: () {
                 _showAboutUs(context); // Show About Us dialog
               },
@@ -258,7 +267,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // Log out
             ListTile(
               title: Text("Log Out"),
-              trailing: Icon(Icons.logout),
+              //trailing: Icon(Icons.logout),
+              trailing: Icon(LucideIcons.logOut, color: Colors.purple),
               onTap:
                 // Log out logic (return to login/signup page)
                 _showLogoutDialog,
@@ -284,7 +294,8 @@ void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.light_mode),
+              //leading: Icon(Icons.light_mode),
+              leading: Icon(LucideIcons.sun, color: Colors.orange),
               title: Text("Light Mode"),
               onTap: () {
                 themeProvider.toggleTheme(false); // Apply Light Mode
@@ -292,7 +303,8 @@ void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
               },
             ),
             ListTile(
-              leading: Icon(Icons.dark_mode),
+              //leading: Icon(Icons.dark_mode),
+              leading: Icon(LucideIcons.moon, color: Colors.blueGrey),
               title: Text("Dark Mode"),
               onTap: () {
                 themeProvider.toggleTheme(true); // Apply Dark Mode

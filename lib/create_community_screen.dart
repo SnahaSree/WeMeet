@@ -84,6 +84,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
             communityLogo: logoUrl,
             communityCoverPic: coverPicUrl,
             communityDescription: _descriptionController.text,
+            //chatRoomId: docref.id,
           ),
         ),
       );
