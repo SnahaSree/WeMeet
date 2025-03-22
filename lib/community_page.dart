@@ -6,7 +6,8 @@ import 'package:cloudinary_sdk/cloudinary_sdk.dart';
 import 'dart:io';
 import 'create_post_page.dart';
 import 'comment_section.dart';
-import 'chat_room_screen.dart';
+import 'package:intl/intl.dart';
+import 'create_event_screen.dart';
 
 
 class CommunityPage extends StatefulWidget {
@@ -223,61 +224,6 @@ class _CommunityPageState extends State<CommunityPage> {
     }
   }
 
-  // Function to navigate to the chat room
-  /*void _openChatRoom() {
-    if (_chatRoomId.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChatRoomScreen(chatRoomId: _chatRoomId),
-        ),
-      );
-    } else {
-      // If no chat room is available
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No chat room available")));
-    }
-  }
-
-   */
-  /*void _openChatRoom() {
-    if (widget.chatRoomId.isNotEmpty) {
-      // Fetch the community data
-      FirebaseFirestore.instance
-          .collection("communities")
-          .doc(widget.communityId) // Assuming you have the communityId available
-          .get()
-          .then((documentSnapshot) {
-        if (documentSnapshot.exists) {
-          // Get the community details
-          String communityName = documentSnapshot["name"]; // Adjust field names accordingly
-          String communityLogo = documentSnapshot["logo"]; // Adjust field names accordingly
-
-          // Navigate to the chat room screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatRoomScreen(
-                //communityId: _communityId,
-                //chatRoomId: widget.chatRoomId,
-                communityName: communityName,
-                communityLogo: communityLogo, communityId: '',
-              ),
-            ),
-          );
-        } else {
-          // If community data is not found
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Community not found")));
-        }
-      });
-    } else {
-      // If no chat room is available
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No chat room available")));
-    }
-  }
-
-   */
-
-
   Future<void> _leaveCommunity() async {
     final uid = _auth.currentUser!.uid;
     await _firestore.collection('communities').doc(widget.communityId).update(
@@ -443,119 +389,180 @@ class _CommunityPageState extends State<CommunityPage> {
                       final String postId = post.id;
                       final String postCreatorId = post['userId'];
                       final bool isCreator = postCreatorId == _currentUserId;
-                      final bool disableComments = post['disableComments'] ?? false;
+                      final bool disableComments = post['disableComments'] ??
+                          false;
                       final bool hideLikes = post['hideLikes'] ?? false;
+                      final Timestamp createdAt = post['createdAt'];
+                      final DateTime postTime = createdAt.toDate();
+                      final String formattedTime = DateFormat(
+                          'MMM dd, yyyy hh:mm a').format(
+                          postTime); // Format timestamp
 
-                      return GestureDetector(
-                        onDoubleTap: () => _reactToPost(postId),
-                        child: Card(
-                          margin: EdgeInsets.all(8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // ✅ FIXED IMAGE HANDLING ✅
-                              if (post['imageUrl'] != null) ...[
-                                if (post['imageUrl'] is String)
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(
-                                      post['imageUrl'],
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                else if (post['imageUrl'] is List && post['imageUrl'].isNotEmpty)
-                                  SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal, // ✅ Enables smooth side scrolling
-                                    child: Row(
-                                      children: (post['imageUrl'] as List<dynamic>).map<Widget>((img) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(right: 8), // Adds space between images
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(8), // Rounded corners
-                                            child: Image.network(
-                                              img,
-                                              height: 200, // ✅ Keeps original image height
-                                              fit: BoxFit.contain, // ✅ Ensures no cropping or distortion
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                  ),
-                              ],
 
-                              Padding(
-                                padding: EdgeInsets.all(8),
-                                child: Text(post['text'], style: TextStyle(fontSize: 16)),
-                              ),
-                              Row(
+                      return FutureBuilder<DocumentSnapshot>(
+                        future: _firestore.collection('users').doc(
+                            postCreatorId).get(),
+                        builder: (context, userSnapshot) {
+                          if (!userSnapshot.hasData) {
+                            return SizedBox(); // Skip rendering if user data is missing
+                          }
+
+                          final userData = userSnapshot.data!;
+                          final String username = userData['name'];
+                          final String profilePicture = userData['profilePic'] ??
+                              'https://example.com/default_avatar.png';
+                          return GestureDetector(
+                            onDoubleTap: () => _reactToPost(postId),
+                            child: Card(
+                              margin: EdgeInsets.all(8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  if (!hideLikes) ...[
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.favorite,
-                                        color: post['reactions']?.contains(_currentUserId) ? Colors.red : Colors.grey,
-                                      ),
-                                      onPressed: () => _reactToPost(postId),
-                                    ),
-                                  ] else
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        "Likes are disabled for this post.",
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
-                                  Text("${post['reactions']?.length ?? 0}"),
-                                  if (!disableComments) ...[
-                                    IconButton(
-                                      icon: Icon(Icons.comment),
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return CommentSection(
-                                              communityId: widget.communityId,
-                                              postId: post.id,
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ] else
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        "Comments are disabled for this post.",
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
-                                  if (isCreator) ...[
-                                    PopupMenuButton<String>(
-                                      onSelected: (value) {
-                                        if (value == 'edit') {
-                                          _editPost(postId, post['text']);
-                                        } else if (value == 'delete') {
-                                          _deletePost(postId);
-                                        }
-                                      },
-                                      itemBuilder: (context) => [
-                                        PopupMenuItem(value: 'edit', child: Text("Edit Post")),
-                                        PopupMenuItem(value: 'delete', child: Text("Delete Post")),
+
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 20,
+                                          backgroundImage: NetworkImage(profilePicture),
+                                        ),
+                                        SizedBox(width: 10),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(username, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                            Text(formattedTime, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                          ],
+                                        ),
                                       ],
                                     ),
+                                  ),
+
+
+                                  // ✅ FIXED IMAGE HANDLING ✅
+                                  if (post['imageUrl'] != null) ...[
+                                    if (post['imageUrl'] is String)
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          post['imageUrl'],
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    else
+                                      if (post['imageUrl'] is List &&
+                                          post['imageUrl'].isNotEmpty)
+                                        SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          // ✅ Enables smooth side scrolling
+                                          child: Row(
+                                            children: (post['imageUrl'] as List<
+                                                dynamic>).map<Widget>((img) {
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 8),
+                                                // Adds space between images
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius
+                                                      .circular(8),
+                                                  // Rounded corners
+                                                  child: Image.network(
+                                                    img,
+                                                    height: 200,
+                                                    // ✅ Keeps original image height
+                                                    fit: BoxFit
+                                                        .contain, // ✅ Ensures no cropping or distortion
+                                                  ),
+                                                ),
+                                              );
+                                            }).toList(),
+                                          ),
+                                        ),
                                   ],
+
+                                  Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Text(post['text'],
+                                        style: TextStyle(fontSize: 16)),
+                                  ),
+                                  Row(
+                                    children: [
+                                      if (!hideLikes) ...[
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.favorite,
+                                            color: post['reactions']?.contains(
+                                                _currentUserId)
+                                                ? Colors.red
+                                                : Colors.grey,
+                                          ),
+                                          onPressed: () => _reactToPost(postId),
+                                        ),
+                                      ] else
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "Likes are disabled for this post.",
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+                                      Text("${post['reactions']?.length ?? 0}"),
+                                      if (!disableComments) ...[
+                                        IconButton(
+                                          icon: Icon(Icons.comment),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return CommentSection(
+                                                  communityId: widget
+                                                      .communityId,
+                                                  postId: post.id,
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ] else
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "Comments are disabled for this post.",
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+                                      if (isCreator) ...[
+                                        PopupMenuButton<String>(
+                                          onSelected: (value) {
+                                            if (value == 'edit') {
+                                              _editPost(postId, post['text']);
+                                            } else if (value == 'delete') {
+                                              _deletePost(postId);
+                                            }
+                                          },
+                                          itemBuilder: (context) =>
+                                          [
+                                            PopupMenuItem(value: 'edit',
+                                                child: Text("Edit Post")),
+                                            PopupMenuItem(value: 'delete',
+                                                child: Text("Delete Post")),
+                                          ],
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
                       );
                     },
                   );
-                },
-              ),
+                }
+                ),
             ),
           ],
         ),
@@ -569,7 +576,10 @@ class _CommunityPageState extends State<CommunityPage> {
     );
   }
 
-  // Edit Post Function
+
+
+
+    // Edit Post Function
   void _editPost(String postId, String currentText) {
     TextEditingController _editController = TextEditingController(
         text: currentText);

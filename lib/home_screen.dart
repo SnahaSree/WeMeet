@@ -655,8 +655,7 @@ import 'join_community_screen.dart';
 import 'community_page.dart';
 import 'dashboard_screen.dart';
 import 'chat_list_screen.dart';
-import 'chat_service.dart'; // Import the chat service
-
+import 'package:intl/intl.dart';
 class HomeScreen extends StatefulWidget {
   String userName;
   String userProfilePic;
@@ -673,9 +672,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
   List<Map<String, dynamic>> joinedCommunities = [];
-  int _selectedIndex = 0;
-  //final ChatService _chatService = ChatService(); // Initialize the chat service
 
+  int _selectedIndex = 0;
   @override
   void initState() {
     super.initState();
@@ -726,8 +724,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         joinedCommunities = communitiesList;
+
       });
-      //_fetchPostsFromJoinedCommunities(communitiesList);
+
+
+
     } catch (e) {
       print("Error fetching user data: $e");
     }
@@ -744,10 +745,6 @@ class _HomeScreenState extends State<HomeScreen> {
       widget.userProfilePic = newPic;
     });
   }
-
-  // Function to navigate to chat room
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -899,6 +896,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
+
+
           // Live & Upcoming Events Section
           Padding(
             padding: EdgeInsets.all(16.0),
@@ -933,8 +932,30 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }).toList(),
           ),
+          // Expanded posts feed below the header elements
+
+
+          Expanded(
+            child: ListView.builder(
+              //itemCount: communityPosts.length,
+              itemBuilder: (context, index) {
+                //final post = communityPosts[index];
+                return Card(
+                  margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  elevation: 5,
+                );
+              },
+            ),
+          ),
+
         ],
       ),
+
+
+
+
+
+      // Display posts from the joined communities
 
       bottomNavigationBar: CurvedNavigationBar(
         index: _selectedIndex,
@@ -964,7 +985,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           }
-
         },
       ),
     );

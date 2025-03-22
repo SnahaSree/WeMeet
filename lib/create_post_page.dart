@@ -549,7 +549,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
-  Future<void> _uploadPost() async {
+  /*Future<void> _uploadPost() async {
     if (_postController.text.isEmpty && _pickedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Post cannot be empty.")),
@@ -564,6 +564,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     List<String> imageUrl = [];
 
     try {
+      // Fetch the current user's details from Firestore
+      final userDoc = await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
+      if (!userDoc.exists) {
+        throw Exception("User data not found");
+      }
+
+      final userData = userDoc.data()!;
+      final String username = userData['username'];
+      final String profilePicture = userData['profilePicture'] ?? 'https://example.com/default_avatar.png';
       for (var image in _pickedImages) {
         final response = await _cloudinary.uploadFile(
           filePath: image.path,
@@ -577,11 +586,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       }
 
       await _firestore.collection('communities').doc(widget.communityId).collection('posts').add({
+        'communityId': widget.communityId,
         'text': _postController.text,
         'imageUrl': imageUrl,
         'createdAt': Timestamp.now(),
         'reactions': [],
         'userId': _auth.currentUser!.uid,
+        'username': username,
+        'profilePicture': profilePicture, // ✅ Storing author details
         'disableComments': _disableComments,
         'hideLikes': _hideLikes,
       });
@@ -597,6 +609,76 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       });
     }
   }
+
+   */
+  Future<void> _uploadPost() async {
+    if (_postController.text.isEmpty && _pickedImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Post cannot be empty.")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    List<String> imageUrl = [];
+
+    try {
+      // Fetch the current user's details from Firestore
+      final userDoc = await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
+      if (!userDoc.exists) {
+        throw Exception("User data not found");
+      }
+
+      final userData = userDoc.data()!;
+      final String username = userData['name'] ?? 'Unknown User';
+      final String profilePicture = userData['profilePic'] ?? 'https://example.com/default_avatar.png';
+
+      // Upload Images to Cloudinary
+      if (_pickedImages.isNotEmpty) {
+        for (var image in _pickedImages) {
+          final response = await _cloudinary.uploadFile(
+            filePath: image.path,
+            resourceType: CloudinaryResourceType.image,
+          );
+          if (response.isSuccessful) {
+            imageUrl.add(response.secureUrl!);
+          } else {
+            throw Exception("Image upload failed: ${response.error}");
+          }
+        }
+      }
+
+      // Add post to Firestore
+      await _firestore.collection('communities').doc(widget.communityId).collection('posts').add({
+        'communityId': widget.communityId,
+        'text': _postController.text,
+        'imageUrl': imageUrl,
+        'createdAt': Timestamp.now(),
+        'reactions': [],
+        'userId': _auth.currentUser!.uid,
+        'name': username,
+        'profilePic': profilePicture,
+        'disableComments': _disableComments,
+        'hideLikes': _hideLikes,
+      });
+
+      print("Post uploaded successfully!");
+      Navigator.pop(context);
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error uploading post: $e")),
+      );
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+
 
   String _highlightText(String text) {
     return text.replaceAllMapped(
