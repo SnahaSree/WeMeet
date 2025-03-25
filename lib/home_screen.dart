@@ -91,26 +91,6 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Error fetching user data: $e");
     }
   }
-
- /* Future<void> fetchEvents() async {
-    QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('events').get();
-    QuerySnapshot communitySnapshot = await FirebaseFirestore.instance.collection('communities').get();
-    List<String> existingCommunityIds = communitySnapshot.docs.map((doc) => doc.id).toList();
-
-    List<Map<String, dynamic>> fetchedEvents = snapshot.docs.map((doc) {
-      return {
-        'id': doc.id,
-        'name': doc['name'],
-        'coverImage': doc['coverImage'],
-        'description': doc['description'],
-        'date': doc['date'],
-      };
-    }).toList();
-
-    setState(() {
-      events = fetchedEvents;
-    });
-  }*/
   Future<void> fetchEvents() async {
     QuerySnapshot eventSnapshot = await FirebaseFirestore.instance.collection('events').get();
     QuerySnapshot communitySnapshot = await FirebaseFirestore.instance.collection('communities').get();
@@ -120,10 +100,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     List<Map<String, dynamic>> fetchedEvents = [];
 
+
     for (var doc in eventSnapshot.docs) {
       String communityId = doc['communityId']; // Assuming each event has a 'communityId'
+      //DateTime eventDate = DateTime.parse(doc['date']);
+      DateTime eventDate = DateTime.parse(doc['date']); // Assuming the event date is stored as a string in Firestore and needs to be parsed
 
-      if (existingCommunityIds.contains(communityId)) {
+
+      // Compare the event date with today's date (ignoring the time part)
+      DateTime currentDate = DateTime.now();
+      currentDate = DateTime(currentDate.year, currentDate.month, currentDate.day); // Set current time to midnight
+
+      if (existingCommunityIds.contains(communityId)  && eventDate.isAfter(currentDate) || eventDate.isAtSameMomentAs(currentDate)) {
         fetchedEvents.add({
           'id': doc.id,
           'name': doc['name'],
@@ -132,8 +120,12 @@ class _HomeScreenState extends State<HomeScreen> {
           'date': doc['date'],
         });
       } else {
-        // If the community does not exist, delete the event
-        await FirebaseFirestore.instance.collection('events').doc(doc.id).delete();
+        if (currentDate.isAfter(eventDate)) {
+          // If the community does not exist, delete the event
+          await FirebaseFirestore.instance.collection('events')
+              .doc(doc.id)
+              .delete();
+        }
       }
     }
 

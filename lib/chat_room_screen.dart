@@ -688,13 +688,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 }
 */
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cloudinary_sdk/cloudinary_sdk.dart';
+//import 'clipper.dart';
 import 'dart:io';
 
 class ChatRoomScreen extends StatefulWidget {
@@ -788,10 +791,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     String messageType = data["type"] ?? "text";
     String? replyTo = data["replyTo"];
     String messageId = message.id;
-    //Map<String, dynamic>? reactions = data["reactions"] as Map<String, dynamic>?;
     List<dynamic>? reactionsList = data["reactions"] as List<dynamic>?;
-
-
     Timestamp? timestamp = data["timestamp"];
     String formattedTime = timestamp != null ? DateFormat('hh:mm a').format(timestamp.toDate()) : "Sending...";
 
@@ -811,25 +811,302 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       return "Unknown User"; // Default fallback if message doesn't exist
     }
 
-    // Count reactions
-    /*Map<String, int> reactionCounts = {};
-    if (reactions != null) {
-      reactions.values.forEach((emoji) {
-        reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
-      });
-    }
-
-     */
     Map<String, int> reactionCounts = {};
     if (reactionsList != null) {
       for (var reaction in reactionsList) {
-        /*if (reaction is String) {
-          reactionCounts[reaction] = (reactionCounts[reaction] ?? 0) + 1;
-        }
-
-         */
         String emoji = reaction["emoji"];
-        reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
+        if (emoji.isNotEmpty) {
+          reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
+        }
+      }
+    }
+
+    return GestureDetector(
+      onLongPress: () => _showOptions(messageId, data["senderId"]),
+      child: Column(
+        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: [
+              if (!isMe) CircleAvatar(backgroundImage: NetworkImage(senderProfilePic)),
+              SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isMe ? [Colors.deepPurpleAccent, Colors.purple] : [Colors.pinkAccent, Colors.cyan],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Display sender's name
+                      Text(senderName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+
+                      // Display the message being replied to (if any)
+                      if (replyTo != null)
+                        FutureBuilder<String>(
+                          future: getReplySenderName(replyTo),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Text("Replying to: ...", style: TextStyle(fontSize: 12, color: Colors.grey));
+                            } else if (snapshot.hasData) {
+                              return Text("Replying to: ${snapshot.data}", style: TextStyle(fontSize: 12, color: Colors.grey));
+                            } else {
+                              return Text("Replying to: Unknown", style: TextStyle(fontSize: 12, color: Colors.grey));
+                            }
+                          },
+                        ),
+
+                      // Display the message text or emoji
+                      if (messageType == "text")
+                        Text(messageText, style: TextStyle(fontSize: 16)),
+                      if (messageType == "emoji")
+                        Text(messageText, style: TextStyle(fontSize: 30)),
+                      if (messageType == "image")
+                        Image.network(messageText, width: 150),
+
+                      // Display timestamp
+                      Text(formattedTime, style: TextStyle(fontSize: 12, color: Colors.grey)),
+
+                      // Show reactions with cute heart or star accents
+                      if (reactionCounts.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5),
+                          child: Row(
+                            children: reactionCounts.entries.map((e) {
+                              return GestureDetector(
+                                onTap: () => _addReaction(messageId, e.key),
+                                child: Container(
+                                  margin: EdgeInsets.only(right: 5),
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // Use cute emojis like hearts or stars here
+                                      Icon(
+                                        e.key == "❤️" ? Icons.favorite : Icons.star,
+                                        color: e.key == "❤️" ? Colors.red : Colors.yellow,
+                                        size: 16,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text("${e.value}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+/*  Widget buildMessage(DocumentSnapshot message) {
+    final data = message.data() as Map<String, dynamic>?;
+
+    if (data == null) return SizedBox();
+
+    bool isMe = data["senderId"] == currentUser?.uid;
+    String senderName = data["senderName"] ?? "Unknown";
+    String senderProfilePic = data["senderProfilePic"] ?? widget.communityLogo;
+    String messageText = data["message"] ?? "";
+    String messageType = data["type"] ?? "text";
+    String? replyTo = data["replyTo"];
+    String messageId = message.id;
+    List<dynamic>? reactionsList = data["reactions"] as List<dynamic>?;
+    Timestamp? timestamp = data["timestamp"];
+    String formattedTime = timestamp != null ? DateFormat('hh:mm a').format(timestamp.toDate()) : "Sending...";
+
+
+
+    // Function to get the sender's name of the message being replied to
+    Future<String> getReplySenderName(String replyToMessageId) async {
+      DocumentSnapshot replyMessageSnapshot = await FirebaseFirestore.instance
+          .collection("communities")
+          .doc(widget.communityId)
+          .collection("chatroom")
+          .doc(replyToMessageId)
+          .get();
+
+      if (replyMessageSnapshot.exists) {
+        var replyMessageData = replyMessageSnapshot.data() as Map<String, dynamic>;
+        return replyMessageData["senderName"] ?? "Unknown User";
+      }
+      return "Unknown User"; // Default fallback if message doesn't exist
+    }
+
+    Map<String, int> reactionCounts = {};
+    if (reactionsList != null) {
+      for (var reaction in reactionsList) {
+        String emoji = reaction["emoji"];
+        if (emoji.isNotEmpty) {
+          reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
+        }
+      }
+    }
+
+    return GestureDetector(
+      onLongPress: () => _showOptions(messageId, data["senderId"]),
+      child: Column(
+        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: [
+              if (!isMe) CircleAvatar(backgroundImage: NetworkImage(senderProfilePic)),
+              SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isMe ? [Colors.deepPurpleAccent, Colors.blue] : [Colors.grey[200]!, Colors.grey[300]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15),
+                      bottomLeft: isMe ? Radius.circular(15) : Radius.zero,
+                      bottomRight: isMe ? Radius.zero : Radius.circular(15),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: Offset(0, 5),
+                      )
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(senderName, style: TextStyle(fontWeight: FontWeight.bold)),
+                      if (replyTo != null)
+                        FutureBuilder<String>(
+                          future: getReplySenderName(replyTo),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Text("Replying to: ...", style: TextStyle(fontSize: 12, color: Colors.grey));
+                            } else if (snapshot.hasData) {
+                              return Text("Replying to: ${snapshot.data}", style: TextStyle(fontSize: 12, color: Colors.grey));
+                            } else {
+                              return Text("Replying to: Unknown", style: TextStyle(fontSize: 12, color: Colors.grey));
+                            }
+                          },
+                        ),
+                      if (messageType == "text") Text(messageText, style: TextStyle(fontSize: 16)),
+                      if (messageType == "emoji") Text(messageText, style: TextStyle(fontSize: 30)),
+                      if (messageType == "image") Image.network(messageText, width: 150),
+                      Text(formattedTime, style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      // Show reactions below messages
+                      if (reactionCounts.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5),
+                          child: Row(
+                            children: reactionCounts.entries.map((e) {
+                              return GestureDetector(
+                                onTap: () => _addReaction(messageId, e.key),
+                                child: Container(
+                                  margin: EdgeInsets.only(right: 5),
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(e.key, style: TextStyle(fontSize: 16)), // Emoji
+                                      SizedBox(width: 4),
+                                      Text("${e.value}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)), // Count
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+   */
+
+  /*Widget buildMessage(DocumentSnapshot message) {
+    final data = message.data() as Map<String, dynamic>?;
+
+    if (data == null) return SizedBox();
+
+    bool isMe = data["senderId"] == currentUser?.uid;
+    String senderName = data["senderName"] ?? "Unknown";
+    String senderProfilePic = data["senderProfilePic"] ?? widget.communityLogo;
+    String messageText = data["message"] ?? "";
+    String messageType = data["type"] ?? "text";
+    String? replyTo = data["replyTo"];
+    String messageId = message.id;
+    //Map<String, dynamic>? reactions = data["reactions"] as Map<String, dynamic>?;
+    List<dynamic>? reactionsList = data["reactions"] as List<dynamic>?;
+    Timestamp? timestamp = data["timestamp"];
+    String formattedTime = timestamp != null ? DateFormat('hh:mm a').format(timestamp.toDate()) : "Sending...";
+
+    // Function to get the sender's name of the message being replied to
+    Future<String> getReplySenderName(String replyToMessageId) async {
+      DocumentSnapshot replyMessageSnapshot = await FirebaseFirestore.instance
+          .collection("communities")
+          .doc(widget.communityId)
+          .collection("chatroom")
+          .doc(replyToMessageId)
+          .get();
+
+      if (replyMessageSnapshot.exists) {
+        var replyMessageData = replyMessageSnapshot.data() as Map<String, dynamic>;
+        return replyMessageData["senderName"] ?? "Unknown User";
+      }
+      return "Unknown User"; // Default fallback if message doesn't exist
+    }
+
+    Map<String, int> reactionCounts = {};
+    if (reactionsList != null) {
+      for (var reaction in reactionsList) {
+        String emoji = reaction["emoji"];
+        if (emoji.isNotEmpty) {
+          reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
+        }
       }
     }
 
@@ -847,7 +1124,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 child: Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isMe ? Colors.blue[100] : Colors.grey[200],
+                    color: isMe ? Colors.deepPurpleAccent[100] : Colors.grey[200],
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 3, offset: Offset(0, 2))],
                   ),
@@ -872,30 +1149,32 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       if (messageType == "emoji") Text(messageText, style: TextStyle(fontSize: 30)),
                       if (messageType == "image") Image.network(messageText, width: 150),
                       Text(formattedTime, style: TextStyle(fontSize: 12, color: Colors.grey)),
-
                       // Show reactions below messages
                       if (reactionCounts.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 5),
                           child: Row(
-                            children: reactionCounts.entries
-                                .map((e) => Container(
-                              margin: EdgeInsets.only(right: 5),
-                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(e.key, style: TextStyle(fontSize: 16)),
-                                  SizedBox(width: 4),
-                                  Text("${e.value}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                            ))
-                                .toList(),
+                            children: reactionCounts.entries.map((e) {
+                              return GestureDetector(
+                                onTap: () => _addReaction(messageId, e.key), // Allows undoing reaction
+                                child: Container(
+                                  margin: EdgeInsets.only(right: 5),
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(e.key, style: TextStyle(fontSize: 16)), // Emoji
+                                      SizedBox(width: 4),
+                                      Text("${e.value}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)), // Count
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ),
                     ],
@@ -909,192 +1188,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
-
-  /* Widget buildMessage(DocumentSnapshot message) {
-    final data = message.data() as Map<String, dynamic>?;
-
-    if (data == null) return SizedBox();
-
-    bool isMe = data["senderId"] == currentUser?.uid;
-    String senderName = data["senderName"] ?? "Unknown";
-    String senderProfilePic = data["senderProfilePic"] ?? widget.communityLogo;
-    String messageText = data["message"] ?? "";
-    String messageType = data["type"] ?? "text";
-    String? replyTo = data["replyTo"];
-    String messageId = message.id;
-    Map<String, dynamic>? reactions = data["reactions"] as Map<String, dynamic>?;
-
-    Timestamp? timestamp = data["timestamp"];
-    String formattedTime = timestamp != null ? DateFormat('hh:mm a').format(timestamp.toDate()) : "Sending...";
-
-    // Function to get the sender's name of the message being replied to
-    Future<String> getReplySenderName(String replyToMessageId) async {
-      DocumentSnapshot replyMessageSnapshot = await FirebaseFirestore.instance
-          .collection("communities")
-          .doc(widget.communityId)
-          .collection("chatroom")
-          .doc(replyToMessageId)
-          .get();
-
-      if (replyMessageSnapshot.exists) {
-        var replyMessageData = replyMessageSnapshot.data() as Map<String, dynamic>;
-        return replyMessageData["senderName"] ?? "Unknown User";
-      }
-      return "Unknown User"; // Default fallback if message doesn't exist
-    }
-
-    // Count reactions
-    Map<String, int> reactionCounts = {};
-    if (reactions != null) {
-      reactions.values.forEach((emoji) {
-        reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
-      });
-    }
-
-
-    return GestureDetector(
-      onLongPress: () => _showOptions(messageId, data["senderId"]),
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-          children: [
-            if (!isMe) CircleAvatar(backgroundImage: NetworkImage(senderProfilePic)),
-            SizedBox(width: 8),
-            Flexible(
-              child: Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: isMe ? Colors.blue[100] : Colors.grey[200],
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 3, offset: Offset(0, 2))],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(senderName, style: TextStyle(fontWeight: FontWeight.bold)),
-                    if (replyTo != null)
-                      FutureBuilder<String>(
-                        future: getReplySenderName(replyTo),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Text("Replying to: ...", style: TextStyle(fontSize: 12, color: Colors.grey));
-                          } else if (snapshot.hasData) {
-                            return Text("Replying to: ${snapshot.data}", style: TextStyle(fontSize: 12, color: Colors.grey));
-                          } else {
-                            return Text("Replying to: Unknown", style: TextStyle(fontSize: 12, color: Colors.grey));
-                          }
-                        },
-                      ),
-                    if (messageType == "text") Text(messageText, style: TextStyle(fontSize: 16)),
-                    if (messageType == "emoji") Text(messageText, style: TextStyle(fontSize: 30)),
-                    if (messageType == "image") Image.network(messageText, width: 150),
-                    Text(formattedTime, style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }*/
-
-  /*void _addReaction(String messageId, String emoji) async {
-    final docRef = FirebaseFirestore.instance
-        .collection("communities")
-        .doc(widget.communityId)
-        .collection("chatroom")
-        .doc(messageId);
-
-    final docSnapshot = await docRef.get();
-    if (!docSnapshot.exists) return;
-
-    Map<String, dynamic>? data = docSnapshot.data();
-    Map<String, String> reactions = data?["reactions"] != null
-        ? Map<String, String>.from(data!["reactions"])
-        : {};
-
-    // If user already reacted with the same emoji, remove it
-    if (reactions[currentUser!.uid] == emoji) {
-      reactions.remove(currentUser!.uid);
-    } else {
-      reactions[currentUser!.uid] = emoji; // Update reaction
-    }
-
-    await docRef.update({"reactions": reactions});
-  }
-
    */
-
-  /*void _addReaction(String messageId, String emoji) async {
-    DocumentReference messageRef = FirebaseFirestore.instance
-        .collection("communities")
-        .doc(widget.communityId)
-        .collection("chatroom")
-        .doc(messageId);
-
-    DocumentSnapshot messageSnapshot = await messageRef.get();
-
-    if (messageSnapshot.exists) {
-      Map<String, dynamic> data = messageSnapshot.data() as Map<String, dynamic>;
-      Map<String, String> reactions = Map<String, String>.from(data["reactions"] ?? {});
-
-      String userId = currentUser!.uid;
-
-      if (reactions.containsKey(userId) && reactions[userId] == emoji) {
-        // If the user already reacted with this emoji, remove it
-        reactions.remove(userId);
-      } else {
-        // Otherwise, add or update the reaction
-        reactions[userId] = emoji;
-      }
-
-      await messageRef.update({"reactions": reactions});
-    }
-  }
-
-
-
-  void _addReaction(String messageId, String emoji) async {
-    DocumentReference messageRef = FirebaseFirestore.instance
-        .collection("communities")
-        .doc(widget.communityId)
-        .collection("chatroom")
-        .doc(messageId);
-
-    DocumentSnapshot messageSnapshot = await messageRef.get();
-
-    if (messageSnapshot.exists) {
-      Map<String, dynamic> data = messageSnapshot.data() as Map<String, dynamic>;
-      if(data != null) {
-      List<dynamic> reactionsList = messageSnapshot.data()?["reactions"] ?? [];
-
-      String userId = currentUser!.uid;
-
-      // Check if the user has already reacted
-      var existingReaction = reactionsList.firstWhere(
-            (reaction) => reaction["userId"] == userId,
-        orElse: () => null,
-      );
-
-      if (existingReaction != null) {
-        // Remove existing reaction
-        reactionsList.remove(existingReaction);
-      }
-
-      // Add new reaction
-      reactionsList.add({"userId": userId, "emoji": emoji});
-
-      await messageRef.update({"reactions": reactionsList});
-    }else {
-        print("Message data is null");
-      }
-    }
-  }
-
-   */
-
   void _addReaction(String messageId, String emoji) async {
     DocumentReference messageRef = FirebaseFirestore.instance
         .collection("communities")
@@ -1109,14 +1203,25 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       List<dynamic> reactions = data["reactions"] ?? [];
 
       String userId = currentUser!.uid;
-      reactions.removeWhere((reaction) => reaction["userId"] == userId);
-      reactions.add({"userId": userId, "emoji": emoji});
+      // Check if user already reacted
+      int existingIndex = reactions.indexWhere((reaction) => reaction["userId"] == userId);
+      // Check if user has already reacted
+      if (existingIndex != -1) {
+        // If user already reacted with the same emoji, remove it (undo)
+        if (reactions[existingIndex]["emoji"] == emoji) {
+          reactions.removeAt(existingIndex);
+        } else {
+          // Otherwise, update to a new emoji
+          reactions[existingIndex]["emoji"] = emoji;
+        }
+      } else {
+        // Add new reaction
+        reactions.add({"userId": userId, "emoji": emoji});
+      }
 
       transaction.update(messageRef, {"reactions": reactions});
     });
   }
-
-
   void _showOptions(String messageId, String senderId) {
     showModalBottomSheet(
       context: context,
@@ -1124,25 +1229,31 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Wrap(
+              children: ["❤️", "😂", "😢", "😡", "⭐"].map((emoji) {
+                return GestureDetector(
+                  onTap: () {
+                    _addReaction(messageId, emoji);
+                    Navigator.pop(context);
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text(emoji, style: TextStyle(fontSize: 30)),
+                  ),
+                );
+              }).toList(),
+            ),
             ListTile(
-              leading: Icon(Icons.reply),
+              leading: Icon(LucideIcons.reply),
               title: Text("Reply"),
               onTap: () {
                 setState(() => _replyTo = messageId);
                 Navigator.pop(context);
               },
             ),
-            ListTile(
-              leading: Icon(Icons.emoji_emotions),
-              title: Text("React"),
-              onTap: () {
-                _showEmojiPicker(messageId);
-                Navigator.pop(context);
-              },
-            ),
-            if (senderId == currentUser?.uid) // Only allow the sender to delete their message
+            if (senderId == currentUser?.uid)
               ListTile(
-                leading: Icon(Icons.delete),
+                leading: Icon(LucideIcons.delete),
                 title: Text("Delete Message"),
                 onTap: () {
                   _deleteMessage(messageId);
@@ -1154,8 +1265,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       },
     );
   }
-
-
   void _deleteMessage(String messageId) {
     FirebaseFirestore.instance
         .collection("communities")
@@ -1164,80 +1273,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         .doc(messageId)
         .delete();
   }
-
-  /*void _showEmojiPicker(String messageId) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          content: EmojiPicker(
-            onEmojiSelected: (category, emoji) {
-              _addReaction(messageId, emoji.emoji);
-              Navigator.pop(context);
-            },
-          ),
-        );
-      },
-    );
-  }
-
-
-
-  void _showEmojiPicker(String messageId) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Pick a reaction"),
-          content: Wrap(
-            spacing: 10,
-            children: ["❤️", "😂", "👍", "😮", "😢", "🔥"].map((emoji) {
-              return GestureDetector(
-                onTap: () {
-                  _addReaction(messageId, emoji);
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  emoji,
-                  style: TextStyle(fontSize: 28),
-                ),
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-  }
-
-   */
-  void _showEmojiPicker(String messageId) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return GridView.count(
-          crossAxisCount: 5,
-          children: ["❤️", "😂", "😢", "😡", "👍"].map((emoji) {
-            return GestureDetector(
-              onTap: () {
-                _addReaction(messageId, emoji);
-                Navigator.pop(context);
-              },
-              child: Center(child: Text(emoji, style: TextStyle(fontSize: 30))),
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-
-
   Widget _messageInputField() {
     return Padding(
       padding: EdgeInsets.all(8.0),
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.image),
+            icon: Icon(LucideIcons.image),
             onPressed: _pickImage,
           ),
           Expanded(
@@ -1250,7 +1292,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.send, color: Colors.blue),
+            icon: Icon(LucideIcons.send, color: Colors.deepPurple),
             onPressed: () => sendMessage("text", _messageController.text),
           ),
         ],
@@ -1262,6 +1304,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text(
+          widget.communityName,
+          style: GoogleFonts.pacifico(fontSize: 20),
+        ),
+        backgroundColor: Colors.deepPurpleAccent,
+        /*actions: [
+          IconButton(
+            icon: Icon(LucideIcons.search),
+            onPressed: () {},
+          ),
+        ],
+
+         */
+      ),
+      /*appBar: AppBar(
         title: Row(
           children: [
             CircleAvatar(backgroundImage: NetworkImage(widget.communityLogo)),
@@ -1270,6 +1327,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           ],
         ),
       ),
+
+       */
       body: Column(
         children: [
           Expanded(
@@ -1280,8 +1339,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   .collection("chatroom")
                   .orderBy("timestamp", descending: true)
                   .snapshots(),
-              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+              builder: (context, /*AsyncSnapshot<QuerySnapshot>*/ snapshot) {
+                //if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text("No messages yet"));
+                }
                 var messages = snapshot.data!.docs;
                 return ListView.builder(
                   reverse: true,
@@ -1297,7 +1363,4 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 }
-
-
-
 
