@@ -7,7 +7,7 @@ import 'dart:io';
 import 'create_post_page.dart';
 import 'comment_section.dart';
 import 'package:intl/intl.dart';
-import 'create_event_screen.dart';
+import 'create_event.dart';
 
 
 class CommunityPage extends StatefulWidget {
@@ -43,6 +43,7 @@ class _CommunityPageState extends State<CommunityPage> {
   late String _currentUserId;
   late bool _isCreator;
   String _communityCoverPic = '';
+  late String communityId;
 
 
   @override
@@ -52,6 +53,7 @@ class _CommunityPageState extends State<CommunityPage> {
     _isCreator = false;
     _checkIfCreator();
     _fetchCommunityData();
+    communityId = widget.communityId; // Initialize it here
   }
 
   Future<void> _fetchCommunityData() async {
@@ -350,7 +352,7 @@ class _CommunityPageState extends State<CommunityPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CreatePostScreen(communityId: widget.communityId),
+                          builder: (context) => CreatePostScreen(communityId:widget.communityId),
                         ),
                       );
                     },
@@ -359,7 +361,15 @@ class _CommunityPageState extends State<CommunityPage> {
                 ),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                     Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CreateEventPage(communityId: communityId)),
+                      );
+
+
+
+                    },
                     child: Text("Create Live Event"),
                   ),
                 ),
@@ -567,12 +577,6 @@ class _CommunityPageState extends State<CommunityPage> {
           ],
         ),
       ),
-       /* floatingActionButton: FloatingActionButton(
-          onPressed:_openChatRoom, // Open Chat Room
-          child: Icon(Icons.chat),
-        ),
-
-        */
     );
   }
 

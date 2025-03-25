@@ -1,649 +1,3 @@
-/*import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'create_community_screen.dart';
-import 'join_community_screen.dart';
-import 'community_page.dart';
-import 'dashboard_screen.dart';
-
-class HomeScreen extends StatefulWidget {
-  String userName;
-  String userProfilePic;
-  String communityLogo = '';
-  String communityId = '';
-
-  HomeScreen({required this.userName, required this.userProfilePic});
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final _firestore = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
-  List<Map<String, dynamic>> joinedCommunities = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserData(); // Fetch user data on HomeScreen load
-  }
-
-  Future<void> _fetchUserData() async {
-    try {
-      String uid = _auth.currentUser!.uid;
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
-      if (userDoc.exists) {
-        setState(() {
-          widget.userName = userDoc['name'];
-          widget.userProfilePic = userDoc['profilePic'];
-
-        });
-      }
-      // Fetch communities created by the user
-      QuerySnapshot createdCommunitiesSnapshot = await _firestore
-          .collection('communities')
-          .where('adminId', isEqualTo: uid) // Filter by user as admin
-          .get();
-
-      // Fetch communities joined by the user
-      QuerySnapshot joinedCommunitiesSnapshot = await _firestore
-          .collection('communities')
-          .where('members', arrayContains: uid) // Filter by user as a member
-          .get();
-
-      List<Map<String, dynamic>> communitiesList = [];
-
-      // Add created communities
-      for (var doc in createdCommunitiesSnapshot.docs) {
-        communitiesList.add({
-          'id': doc.id,
-          'name': doc['name'],
-          'logo': doc['logo'] ?? '',
-        });
-      }
-
-      // Add joined communities
-      for (var doc in joinedCommunitiesSnapshot.docs) {
-        communitiesList.add({
-          'id': doc.id,
-          'name': doc['name'],
-          'logo': doc['logo'] ?? '',
-        });
-      }
-
-      setState(() {
-        joinedCommunities = communitiesList;
-      });
-    } catch (e) {
-      print("Error fetching user data: $e");
-    }
-  }
-
-
-
-
-  void _updateUserName(String newName) {
-    setState(() {
-      widget.userName = newName;
-    });
-  }
-
-  void _updateUserProfilePic(String newPic) {
-    setState(() {
-      widget.userProfilePic = newPic;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Center(child: Image.asset('assets/logo.png', height: 40)),
-        actions: [
-          GestureDetector(
-            onTap: () {
-              // Navigate to DashboardScreen when profile picture is clicked
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DashboardScreen(
-                    userName: widget.userName,
-                    userProfilePic: widget.userProfilePic,
-                    onNameChanged: _updateUserName,
-                    onProfilePicChanged: _updateUserProfilePic,
-                  ),
-                ),
-              );
-            },
-            child: CircleAvatar(
-              backgroundImage: NetworkImage(widget.userProfilePic.isNotEmpty
-                  ? widget.userProfilePic
-                  : "https://via.placeholder.com/150"),
-              radius: 20,
-            ),
-          ),
-          SizedBox(width: 15),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              "Hey!! ${widget.userName} 🌸🌸",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-
-          // Row widget to display community logo beside the "Create or Join Community" button
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                ElevatedButton.icon(
-                  icon: Icon(Icons.group_add),
-                  label: Text("Create or Join Community"),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text("Choose an option"),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CreateCommunityScreen(),
-                                ),
-                              );
-                            },
-                            child: Text("Create Community"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => JoinCommunityScreen(),
-                                ),
-                              );
-                            },
-                            child: Text("Join Community"),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(width: 16),
-
-                // Show community logos (Created & Joined)
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: joinedCommunities.map((community) {
-                        return GestureDetector(
-                          onTap: () {
-                            // Navigate to community page
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CommunityPage(
-                                  communityId: community['id'],
-                                  communityName: community['name'],
-                                  communityLogo: community['logo'],
-                                  communityCoverPic: "https://via.placeholder.com/350x150.png",
-                                  communityDescription: "Community Description",
-                                ),
-                              ),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                            child: CircleAvatar(
-                              radius: 25,
-                              backgroundImage: NetworkImage(
-                                community['logo'].isNotEmpty ? community['logo'] : "https://via.placeholder.com/150",
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text("Live & Upcoming Events", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ),
-
-          CarouselSlider(
-            options: CarouselOptions(
-              height: 200,
-              enlargeCenterPage: true,
-              autoPlay: true,
-              aspectRatio: 16 / 9,
-              viewportFraction: 0.8,
-            ),
-            items: [
-              'https://via.placeholder.com/350x150.png?text=Event+1',
-              'https://via.placeholder.com/350x150.png?text=Event+2',
-              'https://via.placeholder.com/350x150.png?text=Event+3',
-            ].map((event) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return InkWell(
-                    onTap: () {
-                      // Add event details navigation here
-                    },
-                    child: Card(
-                      elevation: 5,
-                      child: Image.network(event, fit: BoxFit.cover),
-                    ),
-                  );
-                },
-              );
-            }).toList(),
-          ),
-
-          // Posts from joined or created community
-          if (widget.communityId.isNotEmpty) ...[
-            Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text("Posts from Your Community", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-            StreamBuilder(
-              stream: _firestore
-                  .collection('communities')
-                  .doc(widget.communityId)
-                  .collection('posts')
-                  .orderBy('createdAt', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text("No posts yet."));
-                }
-
-                final posts = snapshot.data!.docs;
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: posts.length,
-                  itemBuilder: (context, index) {
-                    final post = posts[index];
-                    return ListTile(
-                      title: Text(post['text']),
-                      subtitle: post['image'] != null
-                          ? Image.network(post['image'])
-                          : null,
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        items: [
-
-          BottomNavigationBarItem(
-              icon: FaIcon(FontAwesomeIcons.house),  // Cute house icon
-              label: "Home"
-          ),
-          BottomNavigationBarItem(
-              icon: FaIcon(FontAwesomeIcons.commentDots),  // Fancy chat icon
-              label: "Chat"
-          ),
-          BottomNavigationBarItem(
-              icon: FaIcon(FontAwesomeIcons.calendarAlt),  // Fancy event icon
-              label: "Live Events"
-          ),
-          BottomNavigationBarItem(
-              icon: FaIcon(FontAwesomeIcons.bell),  // Cute bell icon
-              label: "Notifications"
-          ),
-
-        ],
-      ),
-    );
-  }
-}
-
- */
-
-/*import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart'; // Import for curved navigation
-import 'create_community_screen.dart';
-import 'join_community_screen.dart';
-import 'community_page.dart';
-import 'dashboard_screen.dart';
-import 'chat_list_screen.dart';
-
-class HomeScreen extends StatefulWidget {
-  String userName;
-  String userProfilePic;
-  String communityLogo = '';
-  String communityId = '';
-
-  HomeScreen({required this.userName, required this.userProfilePic});
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final _firestore = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
-  List<Map<String, dynamic>> joinedCommunities = [];
-  int _selectedIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserData(); // Fetch user data on HomeScreen load
-  }
-
-  Future<void> _fetchUserData() async {
-    try {
-      String uid = _auth.currentUser!.uid;
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
-      if (userDoc.exists) {
-        setState(() {
-          widget.userName = userDoc['name'];
-          widget.userProfilePic = userDoc['profilePic'];
-        });
-      }
-      // Fetch communities created by the user
-      QuerySnapshot createdCommunitiesSnapshot = await _firestore
-          .collection('communities')
-          .where('adminId', isEqualTo: uid) // Filter by user as admin
-          .get();
-
-      // Fetch communities joined by the user
-      QuerySnapshot joinedCommunitiesSnapshot = await _firestore
-          .collection('communities')
-          .where('members', arrayContains: uid) // Filter by user as a member
-          .get();
-
-      List<Map<String, dynamic>> communitiesList = [];
-
-      // Add created communities
-      for (var doc in createdCommunitiesSnapshot.docs) {
-        communitiesList.add({
-          'id': doc.id,
-          'name': doc['name'],
-          'logo': doc['logo'] ?? '',
-        });
-      }
-
-      // Add joined communities
-      for (var doc in joinedCommunitiesSnapshot.docs) {
-        communitiesList.add({
-          'id': doc.id,
-          'name': doc['name'],
-          'logo': doc['logo'] ?? '',
-        });
-      }
-
-      setState(() {
-        joinedCommunities = communitiesList;
-      });
-    } catch (e) {
-      print("Error fetching user data: $e");
-    }
-  }
-
-  void _updateUserName(String newName) {
-    setState(() {
-      widget.userName = newName;
-    });
-  }
-
-  void _updateUserProfilePic(String newPic) {
-    setState(() {
-      widget.userProfilePic = newPic;
-    });
-  }
-
-  // Function to navigate to chat room
-  void _goToChatRoom(String communityId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatListScreen(
-          //communityId: communityId,
-          userId: _auth.currentUser!.uid,
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.purple, // Purple background for AppBar
-        title: Center(child: Image.asset('assets/logo.png', height: 40)),
-        actions: [
-          GestureDetector(
-            onTap: () {
-              // Navigate to DashboardScreen when profile picture is clicked
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DashboardScreen(
-                    userName: widget.userName,
-                    userProfilePic: widget.userProfilePic,
-                    onNameChanged: _updateUserName,
-                    onProfilePicChanged: _updateUserProfilePic,
-                  ),
-                ),
-              );
-            },
-            child: CircleAvatar(
-              backgroundImage: NetworkImage(widget.userProfilePic.isNotEmpty
-                  ? widget.userProfilePic
-                  : "https://via.placeholder.com/150"),
-              radius: 20,
-            ),
-          ),
-          SizedBox(width: 15),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              "Hey!! ${widget.userName} 🌸🌸",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-
-          // Row widget to display community logo beside the "Create or Join Community" button
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text("Choose an option"),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CreateCommunityScreen(),
-                                ),
-                              );
-                            },
-                            child: Text("Create Community"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => JoinCommunityScreen(),
-                                ),
-                              );
-                            },
-                            child: Text("Join Community"),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple, // Purple button color
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 5,
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  ),
-                  child: Column(
-                    children: [
-                      FaIcon(
-                        FontAwesomeIcons.circlePlus, // Fancy icon for the button
-                        color: Colors.white,
-                        size: 36,
-                      ),
-                      SizedBox(height: 8),
-
-                    ],
-                  ),
-                ),
-                SizedBox(width: 16),
-
-                // Show community logos (Created & Joined)
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: joinedCommunities.map((community) {
-                        return GestureDetector(
-                          onTap: () {
-                            // Navigate to community page
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CommunityPage(
-                                  communityId: community['id'],
-                                  communityName: community['name'],
-                                  communityLogo: community['logo'],
-                                  communityCoverPic: "https://via.placeholder.com/350x150.png",
-                                  communityDescription: "Community Description",
-                                ),
-                              ),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                            child: CircleAvatar(
-                              radius: 25,
-                              backgroundImage: NetworkImage(
-                                community['logo'].isNotEmpty ? community['logo'] : "https://via.placeholder.com/150",
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text("Live & Upcoming Events", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ),
-
-          CarouselSlider(
-            options: CarouselOptions(
-              height: 200,
-              enlargeCenterPage: true,
-              autoPlay: true,
-              aspectRatio: 16 / 9,
-              viewportFraction: 0.8,
-            ),
-            items: [
-              'https://via.placeholder.com/350x150.png?text=Event+1',
-              'https://via.placeholder.com/350x150.png?text=Event+2',
-              'https://via.placeholder.com/350x150.png?text=Event+3',
-            ].map((event) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return InkWell(
-                    onTap: () {
-                      // Add event details navigation here
-                    },
-                    child: Card(
-                      elevation: 5,
-                      child: Image.network(event, fit: BoxFit.cover),
-                    ),
-                  );
-                },
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-
-      bottomNavigationBar: CurvedNavigationBar(
-        index: _selectedIndex,
-        height: 60,
-        backgroundColor: Colors.transparent, // No background color
-        color: Colors.purple, // Purple active item color
-        animationCurve: Curves.easeInOut,
-        animationDuration: Duration(milliseconds: 300),
-        items: [
-          FaIcon(FontAwesomeIcons.house, color: Colors.white),
-          FaIcon(FontAwesomeIcons.commentDots, color: Colors.white),
-          FaIcon(FontAwesomeIcons.calendarAlt, color: Colors.white),
-          FaIcon(FontAwesomeIcons.bell, color: Colors.white),
-        ],
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-          if (index == 1) {
-            _goToChatList();
-          }
-        },
-      ),
-    );
-  }
-}
-
- */
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -651,19 +5,19 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart'; // Import for curved navigation
 import 'create_community_screen.dart';
+import 'event_list.dart';
 import 'join_community_screen.dart';
 import 'community_page.dart';
 import 'dashboard_screen.dart';
 import 'chat_list_screen.dart';
-import 'package:intl/intl.dart';
+import 'event_details.dart';
+
 class HomeScreen extends StatefulWidget {
   String userName;
   String userProfilePic;
   String communityLogo = '';
   String communityId = '';
-
   HomeScreen({required this.userName, required this.userProfilePic});
-
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -671,13 +25,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
+  //late String _currentUserId;
   List<Map<String, dynamic>> joinedCommunities = [];
-
+  List<Map<String, dynamic>> events = [];
   int _selectedIndex = 0;
   @override
   void initState() {
     super.initState();
-    _fetchUserData(); // Fetch user data on HomeScreen load
+    _fetchUserData();
+    fetchEvents();
+    FirebaseFirestore.instance.collection('communities').snapshots().listen((snapshot) {
+      fetchEvents(); // Refresh events when a community is deleted
+    });
   }
 
   Future<void> _fetchUserData() async {
@@ -728,10 +87,59 @@ class _HomeScreenState extends State<HomeScreen> {
       });
 
 
-
     } catch (e) {
       print("Error fetching user data: $e");
     }
+  }
+
+ /* Future<void> fetchEvents() async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('events').get();
+    QuerySnapshot communitySnapshot = await FirebaseFirestore.instance.collection('communities').get();
+    List<String> existingCommunityIds = communitySnapshot.docs.map((doc) => doc.id).toList();
+
+    List<Map<String, dynamic>> fetchedEvents = snapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        'name': doc['name'],
+        'coverImage': doc['coverImage'],
+        'description': doc['description'],
+        'date': doc['date'],
+      };
+    }).toList();
+
+    setState(() {
+      events = fetchedEvents;
+    });
+  }*/
+  Future<void> fetchEvents() async {
+    QuerySnapshot eventSnapshot = await FirebaseFirestore.instance.collection('events').get();
+    QuerySnapshot communitySnapshot = await FirebaseFirestore.instance.collection('communities').get();
+
+    // Get a list of all existing community IDs
+    List<String> existingCommunityIds = communitySnapshot.docs.map((doc) => doc.id).toList();
+
+    List<Map<String, dynamic>> fetchedEvents = [];
+
+    for (var doc in eventSnapshot.docs) {
+      String communityId = doc['communityId']; // Assuming each event has a 'communityId'
+
+      if (existingCommunityIds.contains(communityId)) {
+        fetchedEvents.add({
+          'id': doc.id,
+          'name': doc['name'],
+          'coverImage': doc['coverImage'],
+          'description': doc['description'],
+          'date': doc['date'],
+        });
+      } else {
+        // If the community does not exist, delete the event
+        await FirebaseFirestore.instance.collection('events').doc(doc.id).delete();
+      }
+    }
+
+    setState(() {
+      events = fetchedEvents;
+    });
   }
 
   void _updateUserName(String newName) {
@@ -896,67 +304,62 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-
-
           // Live & Upcoming Events Section
           Padding(
             padding: EdgeInsets.all(16.0),
             child: Text("Live & Upcoming Events", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ),
+          // Event Carousel
+          StreamBuilder(
+            stream: FirebaseFirestore.instance.collection('events').snapshots(),
+            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (!snapshot.hasData) {
+                return Center(child: CircularProgressIndicator());
+              }
 
-          CarouselSlider(
-            options: CarouselOptions(
-              height: 200,
-              enlargeCenterPage: true,
-              autoPlay: true,
-              aspectRatio: 16 / 9,
-              viewportFraction: 0.8,
-            ),
-            items: [
-              'https://via.placeholder.com/350x150.png?text=Event+1',
-              'https://via.placeholder.com/350x150.png?text=Event+2',
-              'https://via.placeholder.com/350x150.png?text=Event+3',
-            ].map((event) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return InkWell(
+              var events = snapshot.data!.docs;
+
+              if (events.isEmpty) {
+                return Center(child: Text("No upcoming events"));
+              }
+
+              return CarouselSlider(
+                options: CarouselOptions(
+                  height: 250,
+                  autoPlay: true,
+                  viewportFraction: events.length == 1
+                      ? 1.0
+                      : (events.length == 2 ? 0.8 : 0.7),
+                ),
+                items: events.take(3).map((event) {
+                  return GestureDetector(
                     onTap: () {
-                      // Add event details navigation here
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EventDetails(eventId: event.id),
+                        ),
+                      );
                     },
-                    child: Card(
-                      elevation: 5,
-                      child: Image.network(event, fit: BoxFit.cover),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 5),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        image: DecorationImage(
+                          image: NetworkImage(event['coverImage']),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
                   );
-                },
+                }).toList(),
               );
-            }).toList(),
+            },
           ),
-          // Expanded posts feed below the header elements
-
-
-          Expanded(
-            child: ListView.builder(
-              //itemCount: communityPosts.length,
-              itemBuilder: (context, index) {
-                //final post = communityPosts[index];
-                return Card(
-                  margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  elevation: 5,
-                );
-              },
-            ),
-          ),
-
         ],
       ),
 
-
-
-
-
       // Display posts from the joined communities
-
       bottomNavigationBar: CurvedNavigationBar(
         index: _selectedIndex,
         height: 60,
@@ -972,9 +375,24 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         onTap: (index) {
           setState(() {
-            _selectedIndex = index;
+            //_selectedIndex = index;
+            if (index == 0) {
+              _selectedIndex = 0;  // Home icon is always active when you're on the Home screen
+            } else {
+              // Don't change the index if you are on the Home screen
+              _selectedIndex = 0;  // Reset to Home icon even if other icons are tapped
+            }
           });
-          if (index == 1) {
+          if(index==0) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(userName: '', userProfilePic: '',),
+              ),
+                  (Route<dynamic> route) => false, // Remove all previous routes
+            );
+
+          }else if (index == 1) {
             // Navigate to ChatRoomListScreen when chat icon is tapped
             Navigator.push(
               context,
@@ -984,10 +402,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             );
+          }else if(index==2){
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EventListPage(),
+              ),
+            );
           }
         },
       ),
     );
   }
 }
-
