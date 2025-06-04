@@ -11,6 +11,7 @@ import 'community_page.dart';
 import 'dashboard_screen.dart';
 import 'chat_list_screen.dart';
 import 'event_details.dart';
+import 'notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   String userName;
@@ -28,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   //late String _currentUserId;
   List<Map<String, dynamic>> joinedCommunities = [];
   List<Map<String, dynamic>> events = [];
+  //bool isLoading = true;
   int _selectedIndex = 0;
   @override
   void initState() {
@@ -84,8 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         joinedCommunities = communitiesList;
 
-      });
 
+      });
 
     } catch (e) {
       print("Error fetching user data: $e");
@@ -149,8 +151,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.purple, // Purple background for AppBar
-        title: Center(child: Image.asset('assets/logo.png', height: 40)),
+        backgroundColor: Colors.deepPurpleAccent, // Purple background for AppBar
+        title: Center(child: Image.asset('assets/logo.png', height: 80 , width:160)),
         actions: [
           GestureDetector(
             onTap: () {
@@ -227,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple, // Purple button color
+                    backgroundColor: Colors.deepPurpleAccent, // Purple button color
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 5,
                     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -356,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _selectedIndex,
         height: 60,
         backgroundColor: Colors.transparent, // No background color
-        color: Colors.purple, // Purple active item color
+        color: Colors.deepPurpleAccent, // Purple active item color
         animationCurve: Curves.easeInOut,
         animationDuration: Duration(milliseconds: 300),
         items: [
@@ -401,9 +403,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (context) => EventListPage(),
               ),
             );
+          } else if(index==3){
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NotificationScreen(),
+              ),
+            );
           }
+
+
+
         },
       ),
     );
   }
+
 }

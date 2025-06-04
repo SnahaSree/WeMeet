@@ -204,7 +204,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
           title: Text("Dashboard"),
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.deepPurpleAccent,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -230,7 +230,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onChanged: _onNameChanged,
               decoration: InputDecoration(
                   labelText: "Edit Name",
-                  prefixIcon: Icon(LucideIcons.user, color: Colors.purple),
+                  prefixIcon: Icon(LucideIcons.user, color: Colors.deepPurpleAccent),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),),
             ),
 
@@ -249,7 +249,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ListTile(
               title: Text("Change Theme"),
               //trailing: Icon(Icons.arrow_forward),
-              trailing: Icon(LucideIcons.palette, color: Colors.purple),
+              trailing: Icon(LucideIcons.palette, color: Colors.deepPurpleAccent),
               onTap: () {
                 _showThemeDialog(context, themeProvider);// You can add a logic here for changing the theme
               },
@@ -258,7 +258,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ListTile(
               title: Text("About Us"),
               //trailing: Icon(Icons.info),
-              trailing: Icon(LucideIcons.info, color: Colors.purple),
+              trailing: Icon(LucideIcons.info, color: Colors.deepPurpleAccent),
               onTap: () {
                 _showAboutUs(context); // Show About Us dialog
               },
@@ -268,7 +268,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ListTile(
               title: Text("Log Out"),
               //trailing: Icon(Icons.logout),
-              trailing: Icon(LucideIcons.logOut, color: Colors.purple),
+              trailing: Icon(LucideIcons.logOut, color: Colors.deepPurpleAccent),
               onTap:
                 // Log out logic (return to login/signup page)
                 _showLogoutDialog,

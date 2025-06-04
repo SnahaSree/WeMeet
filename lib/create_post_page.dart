@@ -549,68 +549,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
-  /*Future<void> _uploadPost() async {
-    if (_postController.text.isEmpty && _pickedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Post cannot be empty.")),
-      );
-      return;
-    }
-
-    setState(() {
-      _isUploading = true;
-    });
-
-    List<String> imageUrl = [];
-
-    try {
-      // Fetch the current user's details from Firestore
-      final userDoc = await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
-      if (!userDoc.exists) {
-        throw Exception("User data not found");
-      }
-
-      final userData = userDoc.data()!;
-      final String username = userData['username'];
-      final String profilePicture = userData['profilePicture'] ?? 'https://example.com/default_avatar.png';
-      for (var image in _pickedImages) {
-        final response = await _cloudinary.uploadFile(
-          filePath: image.path,
-          resourceType: CloudinaryResourceType.image,
-        );
-        if (response.isSuccessful) {
-          imageUrl.add(response.secureUrl!);
-        } else {
-          throw Exception("Image upload failed");
-        }
-      }
-
-      await _firestore.collection('communities').doc(widget.communityId).collection('posts').add({
-        'communityId': widget.communityId,
-        'text': _postController.text,
-        'imageUrl': imageUrl,
-        'createdAt': Timestamp.now(),
-        'reactions': [],
-        'userId': _auth.currentUser!.uid,
-        'username': username,
-        'profilePicture': profilePicture, // ✅ Storing author details
-        'disableComments': _disableComments,
-        'hideLikes': _hideLikes,
-      });
-
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error uploading post")),
-      );
-    } finally {
-      setState(() {
-        _isUploading = false;
-      });
-    }
-  }
-
-   */
   Future<void> _uploadPost() async {
     if (_postController.text.isEmpty && _pickedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -624,6 +562,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     });
 
     List<String> imageUrl = [];
+    String postId = _firestore.collection('communities').doc(widget.communityId).collection('posts').doc().id;
 
     try {
       // Fetch the current user's details from Firestore
@@ -665,6 +604,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         'hideLikes': _hideLikes,
       });
 
+      // Fetch all members of the community (excluding the post creator)
+      final communityDoc = await _firestore.collection('communities').doc(widget.communityId).get();
+      if (!communityDoc.exists) {
+        throw Exception("Community not found");
+      }
+
+      List<dynamic> members = communityDoc.data()?['members'] ?? [];
+
+      for (String memberId in members) {
+        if (memberId != _auth.currentUser!.uid) { // Exclude post creator
+          await _firestore.collection('users').doc(memberId).collection('notifications').doc(postId).set({
+            'notificationId': postId,
+            'communityId': widget.communityId,
+            'message': "$username posted in your community🌸 ${communityDoc['name']}.",
+            'timestamp': Timestamp.now(),
+            'isRead': false, // For marking as read later
+          });
+        }
+      }
       print("Post uploaded successfully!");
       Navigator.pop(context);
     } catch (e) {
@@ -690,7 +648,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Create Post"), backgroundColor: Colors.purple),
+      appBar: AppBar(title: Text("Create Post"), backgroundColor: Colors.deepPurpleAccent),
       body: SafeArea(
         child: SingleChildScrollView(
         child: Padding(
@@ -763,7 +721,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 icon: Icon(LucideIcons.image, color: Colors.white), // Fancy icon
                 label: Text("Pick Images"),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white, backgroundColor: Colors.deepPurpleAccent,
                 ),
               ),
             ),
@@ -778,7 +736,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   _disableComments = value;
                 });
               },
-              secondary: Icon(LucideIcons.command, color: Colors.purple),
+              secondary: Icon(LucideIcons.command, color: Colors.deepPurpleAccent),
             ),
             SwitchListTile(
               title: Text("Hide Likes"),
@@ -788,7 +746,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   _hideLikes = value;
                 });
               },
-              secondary: Icon(LucideIcons.heart, color: Colors.purple),
+              secondary: Icon(LucideIcons.heart, color: Colors.deepPurpleAccent),
             ),
             const SizedBox(height: 10),
 
@@ -800,7 +758,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 onPressed: _uploadPost,
                 child: Text("Post"),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white, backgroundColor: Colors.deepPurpleAccent,
                 ),
               ),
             ),

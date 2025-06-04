@@ -329,6 +329,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloudinary_sdk/cloudinary_sdk.dart';
 import 'package:intl/intl.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 
 class CreateEventPage extends StatefulWidget {
   final String communityId;
@@ -384,14 +386,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
       ),
     );
 
-    /*if (response.isSuccessful) {
-      // Modify the URL to apply transformations dynamically
-      return response.secureUrl?.replaceFirst('/upload/', '/upload/c_fill,h_315,w_851/');
-    }
-    return null;
-
-     */
-
     return response.isSuccessful ? response.secureUrl : null;
   }
 
@@ -410,7 +404,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
       String? imageUrl = await _uploadImageToCloudinary(_imageFile!);
       if (imageUrl == null) throw Exception("Image upload failed");
 
-      await FirebaseFirestore.instance.collection('events').add({
+      DocumentReference eventRef = await FirebaseFirestore.instance.collection('events').add({
         'name': _eventNameController.text,
         'description': _eventDescController.text,
         'date': _eventDateController.text,
@@ -420,7 +414,18 @@ class _CreateEventPageState extends State<CreateEventPage> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+    // Now send notification to all community members
+    //await _sendEventNotification();
+      String eventId = eventRef.id; // Get the generated event ID
+
+      // Update the event with its own ID
+      await eventRef.update({'eventId': eventId});
+
+      // Now send notification to all community members
+      await _sendEventNotification(eventId); // Pass eventId
+
       Fluttertoast.showToast(msg: "Event Created Successfully!");
+      // Fetch community members and send notifications
       Navigator.pop(context);
     } catch (e) {
       Fluttertoast.showToast(msg: "Error: \${e.toString()}");
@@ -429,12 +434,37 @@ class _CreateEventPageState extends State<CreateEventPage> {
     }
   }
 
+  Future<void> _sendEventNotification(String eventId) async {
+    QuerySnapshot communityMembers = await FirebaseFirestore.instance
+        .collection('communities')
+        .doc(widget.communityId)
+        .collection('members')
+        .get();
+
+    for (var member in communityMembers.docs) {
+      String memberId = member.id;
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(memberId)
+          .collection('notifications')
+          .add({
+        'message': "New event created in community",
+        'timestamp': FieldValue.serverTimestamp(),
+        'communityId': widget.communityId,
+        'eventId': eventId, // Now storing eventId
+        'isRead': false,
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Create Event"),
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.deepPurpleAccent,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -446,7 +476,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
               controller: _eventNameController,
               decoration: InputDecoration(
                 labelText: "Event Name",
-                prefixIcon: Icon(FontAwesomeIcons.solidCalendarDays, color: Colors.purple),
+                prefixIcon: Icon(FontAwesomeIcons.solidCalendarDays, color: Colors.deepPurpleAccent),
               ),
             ),
             SizedBox(height: 10),
@@ -454,7 +484,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
               controller: _eventDescController,
               decoration: InputDecoration(
                 labelText: "Event Description",
-                prefixIcon: Icon(FontAwesomeIcons.pen, color: Colors.purple),
+                prefixIcon: Icon(FontAwesomeIcons.pen, color: Colors.deepPurpleAccent),
               ),
             ),
             SizedBox(height: 10),
@@ -463,9 +493,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
               readOnly: true,
               decoration: InputDecoration(
                 labelText: "Event Date",
-                prefixIcon: Icon(FontAwesomeIcons.clock, color: Colors.purple),
+                prefixIcon: Icon(FontAwesomeIcons.clock, color: Colors.deepPurpleAccent),
                 suffixIcon: IconButton(
-                  icon: Icon(Icons.calendar_today, color: Colors.purple),
+                  icon: Icon(Icons.calendar_today_rounded, color: Colors.deepPurpleAccent),
                   onPressed: _pickDate,
                 ),
               ),
@@ -480,21 +510,21 @@ class _CreateEventPageState extends State<CreateEventPage> {
             SizedBox(height: 10),
             ElevatedButton.icon(
               onPressed: _pickImage,
-              icon: Icon(Icons.image, color: Colors.white),
+              icon: Icon(LucideIcons.image, color: Colors.white),
               label: Text("Upload Cover Image"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple,
+                backgroundColor: Colors.deepPurpleAccent,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
             SizedBox(height: 20),
             _isLoading
-                ? Center(child: CircularProgressIndicator(color: Colors.white))
+                ? Center(child: CircularProgressIndicator(color: Colors.deepPurpleAccent))
                 : ElevatedButton(
               onPressed: _createEvent,
               child: Text("Create Event"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple,
+                backgroundColor: Colors.deepPurpleAccent,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 padding: EdgeInsets.symmetric(vertical: 15),
                 textStyle: TextStyle(fontSize: 18),

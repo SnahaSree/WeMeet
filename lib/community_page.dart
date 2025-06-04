@@ -4,10 +4,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloudinary_sdk/cloudinary_sdk.dart';
 import 'dart:io';
+import 'home_screen.dart';
 import 'create_post_page.dart';
 import 'comment_section.dart';
 import 'package:intl/intl.dart';
 import 'create_event.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:lottie/lottie.dart';
 
 
 class CommunityPage extends StatefulWidget {
@@ -18,7 +22,7 @@ class CommunityPage extends StatefulWidget {
   final String communityDescription;
   //final String chatRoomId;
 
-  CommunityPage({
+  CommunityPage( {
     required this.communityId,
     required this.communityName,
     required this.communityLogo,
@@ -235,7 +239,13 @@ class _CommunityPageState extends State<CommunityPage> {
     await _firestore.collection('chatRooms').doc(widget.communityId).update({
       'members': FieldValue.arrayRemove([uid]),
     });
-    Navigator.pop(context); // Go back after leaving
+    //Navigator.pop(context); // Go back after leaving
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => HomeScreen(userName: '', userProfilePic: '',)), // Replace with your home screen widget
+          (route) => false, // Removes all previous routes from the stack
+    );
+
   }
 
 
@@ -286,8 +296,12 @@ class _CommunityPageState extends State<CommunityPage> {
               expandedHeight: 250.0,
               floating: false,
               pinned: true,
+              backgroundColor: Colors.deepPurple,
               flexibleSpace: FlexibleSpaceBar(
-                title: Text(widget.communityName, style: TextStyle(color: Colors.white)),
+                title: Text(widget.communityName, style: GoogleFonts.pacifico(
+              textStyle:TextStyle(fontSize: 26)
+                ),
+          ),
                 background: Stack(
                   children: [
                     // Cover Picture
@@ -304,6 +318,7 @@ class _CommunityPageState extends State<CommunityPage> {
                       child: CircleAvatar(
                         radius: 40,
                         backgroundImage: NetworkImage(widget.communityLogo),
+                        backgroundColor: Colors.white,
                       ),
                     ),
                   ],
@@ -317,6 +332,7 @@ class _CommunityPageState extends State<CommunityPage> {
 
                  */
                 PopupMenuButton<String>(
+                  icon: Icon(LucideIcons.moveVertical, color: Colors.black),
                   onSelected: (value) {
                     if (value == 'about') {
                       _showAboutCommunity();
@@ -329,11 +345,11 @@ class _CommunityPageState extends State<CommunityPage> {
                     }
                   },
                   itemBuilder: (context) => [
-                    PopupMenuItem(value: 'about', child: Text("About Community")),
-                    PopupMenuItem(value: 'leave', child: Text("Leave Community")),
+                    PopupMenuItem(value: 'about', child: Text("✨ About Community")),
+                    PopupMenuItem(value: 'leave', child: Text("🚪 Leave Community")),
                     if (_isCreator) ...[
-                      PopupMenuItem(value: 'remove', child: Text("Remove Members")),
-                      PopupMenuItem(value: 'destroy', child: Text("Destroy Community")),
+                      PopupMenuItem(value: 'remove', child: Text("👥 Remove Members")),
+                      PopupMenuItem(value: 'destroy', child: Text("🔥 Destroy Community")),
                     ],
                   ],
                 ),
@@ -343,38 +359,42 @@ class _CommunityPageState extends State<CommunityPage> {
         },
         body: Column(
           children: [
-            // Create Post & Live Event
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CreatePostScreen(communityId:widget.communityId),
-                        ),
-                      );
-                    },
-                    child: Text("Create Post"),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CreatePostScreen(communityId: widget.communityId),
+                      ),
+                    );
+                  },
+                  icon: Icon(LucideIcons.penTool, color: Colors.white),
+                  label: Text("Create Post", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purpleAccent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                     Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CreateEventPage(communityId: communityId)),
-                      );
-
-
-
-                    },
-                    child: Text("Create Live Event"),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CreateEventPage(communityId: widget.communityId)),
+                    );
+                  },
+                  icon: Icon(LucideIcons.video, color: Colors.white),
+                  label: Text("Live Event", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pinkAccent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ],
             ),
+
             Expanded(
               child: StreamBuilder(
                 stream: _firestore
@@ -387,8 +407,29 @@ class _CommunityPageState extends State<CommunityPage> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   }
+                  /*if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(child: Text("No posts yet.", style: GoogleFonts.poppins()));
+                  }
+
+                   */
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(child: Text("No posts yet."));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Lottie.asset('assets/animations/no_post.json', height: 200),
+                          SizedBox(height: 15),
+                          Text(
+                            "No posts yet!!",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontFamily: 'Pacifico',
+                              color: Colors.deepPurpleAccent,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   }
 
                   final posts = snapshot.data!.docs;
@@ -425,6 +466,10 @@ class _CommunityPageState extends State<CommunityPage> {
                             onDoubleTap: () => _reactToPost(postId),
                             child: Card(
                               margin: EdgeInsets.all(8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 4,
+                          child: Padding(
+                          padding: const EdgeInsets.all(8.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -441,8 +486,8 @@ class _CommunityPageState extends State<CommunityPage> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(username, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                            Text(formattedTime, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                            Text(username, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                                            Text(formattedTime, style: GoogleFonts.poppins(color: Colors.grey)),
                                           ],
                                         ),
                                       ],
@@ -495,18 +540,25 @@ class _CommunityPageState extends State<CommunityPage> {
                                   Padding(
                                     padding: EdgeInsets.all(8),
                                     child: Text(post['text'],
-                                        style: TextStyle(fontSize: 16)),
+                                        style: GoogleFonts.poppins(fontSize: 16)),
                                   ),
                                   Row(
                                     children: [
                                       if (!hideLikes) ...[
                                         IconButton(
-                                          icon: Icon(
-                                            Icons.favorite,
+                                          icon: Image.asset(
+                                            post['reactions']?.contains(_currentUserId)
+                                                ? 'assets/icons/fill.png'  // Filled version when reacted
+                                                : 'assets/icons/out.png', // Outline version when not reacted
+                                            width: 24,
+                                            height: 24,
+                                           /* Icons.favorite,
                                             color: post['reactions']?.contains(
                                                 _currentUserId)
                                                 ? Colors.red
                                                 : Colors.grey,
+
+                                            */
                                           ),
                                           onPressed: () => _reactToPost(postId),
                                         ),
@@ -515,13 +567,13 @@ class _CommunityPageState extends State<CommunityPage> {
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
                                             "Likes are disabled for this post.",
-                                            style: TextStyle(color: Colors.red),
+                                            style: GoogleFonts.poppins(color: Colors.red),
                                           ),
                                         ),
                                       Text("${post['reactions']?.length ?? 0}"),
                                       if (!disableComments) ...[
                                         IconButton(
-                                          icon: Icon(Icons.comment),
+                                          icon: Icon(LucideIcons.command),
                                           onPressed: () {
                                             showDialog(
                                               context: context,
@@ -540,7 +592,7 @@ class _CommunityPageState extends State<CommunityPage> {
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
                                             "Comments are disabled for this post.",
-                                            style: TextStyle(color: Colors.red),
+                                            style: GoogleFonts.poppins(color: Colors.red),
                                           ),
                                         ),
                                       if (isCreator) ...[
@@ -566,6 +618,7 @@ class _CommunityPageState extends State<CommunityPage> {
                                 ],
                               ),
                             ),
+                          )
                           );
                         },
                       );

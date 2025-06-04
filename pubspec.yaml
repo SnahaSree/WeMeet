@@ -71,6 +71,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/app_icon.png"
+  #flutter_launcher_icons: ^0.14.3
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -79,10 +85,10 @@ dev_dependencies:
 flutter_lints: ^5.0.0
 
 
-flutter_icons:
-  android: true
-  ios: true
-  image_path: "assets/app_icon.png"
+#flutter_icons:
+ # android: true
+  #ios: true
+  #image_path: "assets/app_icon.png"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -105,8 +111,13 @@ flutter:
     - assets/google_logo.png
     - assets/default_avatar.png
     - assets/animations/no_network.json
-    - assets/svg/se.svg
-    - assets/svg/re.svg
+    - assets/animations/empty.json
+    - assets/animations/no_join.json
+    - assets/animations/no_post.json
+    - assets/animations/no_events.json
+    - assets/animations/no_chat.json
+    - assets/icons/fill.png
+    - assets/icons/out.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

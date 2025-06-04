@@ -118,6 +118,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+
 class EventDetails extends StatelessWidget {
   final String eventId;
   const EventDetails({Key? key, required this.eventId}) : super(key: key);
@@ -127,14 +128,14 @@ class EventDetails extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Event Details", style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.deepPurpleAccent,
         elevation: 0,
       ),
       body: FutureBuilder(
         future: FirebaseFirestore.instance.collection('events').doc(eventId).get(),
         builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator(color: Colors.purple));
+            return Center(child: CircularProgressIndicator(color: Colors.deepPurpleAccent));
           }
 
           var event = snapshot.data!;
@@ -145,7 +146,7 @@ class EventDetails extends StatelessWidget {
             future: FirebaseFirestore.instance.collection('communities').doc(communityId).get(),
             builder: (context, communitySnapshot) {
               if (!communitySnapshot.hasData) {
-                return Center(child: CircularProgressIndicator(color: Colors.purple));
+                return Center(child: CircularProgressIndicator(color: Colors.deepPurpleAccent));
               }
 
               var communityData = communitySnapshot.data!;
@@ -167,17 +168,17 @@ class EventDetails extends StatelessWidget {
                     SizedBox(height: 15),
                     Row(
                       children: [
-                        Icon(FontAwesomeIcons.solidCalendar, color: Colors.purple, size: 20),
+                        Icon(FontAwesomeIcons.solidCalendar, color: Colors.deepPurpleAccent, size: 20),
                         SizedBox(width: 10),
-                        Text("Date: ${event['date']}", style: TextStyle(fontSize: 16, fontFamily: 'Poppins', color: Colors.purple)),
+                        Text("Date: ${event['date']}", style: TextStyle(fontSize: 16, fontFamily: 'Poppins', color: Colors.deepPurpleAccent)),
                       ],
                     ),
                     SizedBox(height: 15),
                     Row(
                       children: [
-                        Icon(FontAwesomeIcons.solidBuilding, color: Colors.purple, size: 20), // Optional: You can add an icon for community
+                        Icon(FontAwesomeIcons.solidBuilding, color: Colors.deepPurpleAccent, size: 20), // Optional: You can add an icon for community
                         SizedBox(width: 10),
-                        Text("Community: $communityName", style: TextStyle(fontSize: 16, fontFamily: 'Poppins', color: Colors.purple)),
+                        Text("Community: $communityName", style: TextStyle(fontSize: 16, fontFamily: 'Poppins', color: Colors.deepPurpleAccent)),
                       ],
                     ),
                     SizedBox(height: 15),
@@ -187,7 +188,7 @@ class EventDetails extends StatelessWidget {
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'Poppins',
-                        color: Colors.purple,
+                        color: Colors.deepPurpleAccent,
                       ),
                     ),
                     SizedBox(height: 10),

@@ -697,7 +697,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloudinary_sdk/cloudinary_sdk.dart';
-//import 'clipper.dart';
 import 'dart:io';
 
 class ChatRoomScreen extends StatefulWidget {
@@ -705,10 +704,10 @@ class ChatRoomScreen extends StatefulWidget {
   final String communityName;
   final String communityLogo;
 
-  ChatRoomScreen({
+  ChatRoomScreen( {
     required this.communityId,
     required this.communityName,
-    required this.communityLogo,
+    required this.communityLogo, required chatroomId,
   });
 
   @override
@@ -925,270 +924,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
-
-
-/*  Widget buildMessage(DocumentSnapshot message) {
-    final data = message.data() as Map<String, dynamic>?;
-
-    if (data == null) return SizedBox();
-
-    bool isMe = data["senderId"] == currentUser?.uid;
-    String senderName = data["senderName"] ?? "Unknown";
-    String senderProfilePic = data["senderProfilePic"] ?? widget.communityLogo;
-    String messageText = data["message"] ?? "";
-    String messageType = data["type"] ?? "text";
-    String? replyTo = data["replyTo"];
-    String messageId = message.id;
-    List<dynamic>? reactionsList = data["reactions"] as List<dynamic>?;
-    Timestamp? timestamp = data["timestamp"];
-    String formattedTime = timestamp != null ? DateFormat('hh:mm a').format(timestamp.toDate()) : "Sending...";
-
-
-
-    // Function to get the sender's name of the message being replied to
-    Future<String> getReplySenderName(String replyToMessageId) async {
-      DocumentSnapshot replyMessageSnapshot = await FirebaseFirestore.instance
-          .collection("communities")
-          .doc(widget.communityId)
-          .collection("chatroom")
-          .doc(replyToMessageId)
-          .get();
-
-      if (replyMessageSnapshot.exists) {
-        var replyMessageData = replyMessageSnapshot.data() as Map<String, dynamic>;
-        return replyMessageData["senderName"] ?? "Unknown User";
-      }
-      return "Unknown User"; // Default fallback if message doesn't exist
-    }
-
-    Map<String, int> reactionCounts = {};
-    if (reactionsList != null) {
-      for (var reaction in reactionsList) {
-        String emoji = reaction["emoji"];
-        if (emoji.isNotEmpty) {
-          reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
-        }
-      }
-    }
-
-    return GestureDetector(
-      onLongPress: () => _showOptions(messageId, data["senderId"]),
-      child: Column(
-        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-            children: [
-              if (!isMe) CircleAvatar(backgroundImage: NetworkImage(senderProfilePic)),
-              SizedBox(width: 8),
-              Flexible(
-                child: Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isMe ? [Colors.deepPurpleAccent, Colors.blue] : [Colors.grey[200]!, Colors.grey[300]!],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(15),
-                      topRight: Radius.circular(15),
-                      bottomLeft: isMe ? Radius.circular(15) : Radius.zero,
-                      bottomRight: isMe ? Radius.zero : Radius.circular(15),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: Offset(0, 5),
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(senderName, style: TextStyle(fontWeight: FontWeight.bold)),
-                      if (replyTo != null)
-                        FutureBuilder<String>(
-                          future: getReplySenderName(replyTo),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return Text("Replying to: ...", style: TextStyle(fontSize: 12, color: Colors.grey));
-                            } else if (snapshot.hasData) {
-                              return Text("Replying to: ${snapshot.data}", style: TextStyle(fontSize: 12, color: Colors.grey));
-                            } else {
-                              return Text("Replying to: Unknown", style: TextStyle(fontSize: 12, color: Colors.grey));
-                            }
-                          },
-                        ),
-                      if (messageType == "text") Text(messageText, style: TextStyle(fontSize: 16)),
-                      if (messageType == "emoji") Text(messageText, style: TextStyle(fontSize: 30)),
-                      if (messageType == "image") Image.network(messageText, width: 150),
-                      Text(formattedTime, style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      // Show reactions below messages
-                      if (reactionCounts.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 5),
-                          child: Row(
-                            children: reactionCounts.entries.map((e) {
-                              return GestureDetector(
-                                onTap: () => _addReaction(messageId, e.key),
-                                child: Container(
-                                  margin: EdgeInsets.only(right: 5),
-                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: Colors.grey.shade300),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(e.key, style: TextStyle(fontSize: 16)), // Emoji
-                                      SizedBox(width: 4),
-                                      Text("${e.value}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)), // Count
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-
-   */
-
-  /*Widget buildMessage(DocumentSnapshot message) {
-    final data = message.data() as Map<String, dynamic>?;
-
-    if (data == null) return SizedBox();
-
-    bool isMe = data["senderId"] == currentUser?.uid;
-    String senderName = data["senderName"] ?? "Unknown";
-    String senderProfilePic = data["senderProfilePic"] ?? widget.communityLogo;
-    String messageText = data["message"] ?? "";
-    String messageType = data["type"] ?? "text";
-    String? replyTo = data["replyTo"];
-    String messageId = message.id;
-    //Map<String, dynamic>? reactions = data["reactions"] as Map<String, dynamic>?;
-    List<dynamic>? reactionsList = data["reactions"] as List<dynamic>?;
-    Timestamp? timestamp = data["timestamp"];
-    String formattedTime = timestamp != null ? DateFormat('hh:mm a').format(timestamp.toDate()) : "Sending...";
-
-    // Function to get the sender's name of the message being replied to
-    Future<String> getReplySenderName(String replyToMessageId) async {
-      DocumentSnapshot replyMessageSnapshot = await FirebaseFirestore.instance
-          .collection("communities")
-          .doc(widget.communityId)
-          .collection("chatroom")
-          .doc(replyToMessageId)
-          .get();
-
-      if (replyMessageSnapshot.exists) {
-        var replyMessageData = replyMessageSnapshot.data() as Map<String, dynamic>;
-        return replyMessageData["senderName"] ?? "Unknown User";
-      }
-      return "Unknown User"; // Default fallback if message doesn't exist
-    }
-
-    Map<String, int> reactionCounts = {};
-    if (reactionsList != null) {
-      for (var reaction in reactionsList) {
-        String emoji = reaction["emoji"];
-        if (emoji.isNotEmpty) {
-          reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
-        }
-      }
-    }
-
-    return GestureDetector(
-      onLongPress: () => _showOptions(messageId, data["senderId"]),
-      child: Column(
-        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-            children: [
-              if (!isMe) CircleAvatar(backgroundImage: NetworkImage(senderProfilePic)),
-              SizedBox(width: 8),
-              Flexible(
-                child: Container(
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: isMe ? Colors.deepPurpleAccent[100] : Colors.grey[200],
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 3, offset: Offset(0, 2))],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(senderName, style: TextStyle(fontWeight: FontWeight.bold)),
-                      if (replyTo != null)
-                        FutureBuilder<String>(
-                          future: getReplySenderName(replyTo),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return Text("Replying to: ...", style: TextStyle(fontSize: 12, color: Colors.grey));
-                            } else if (snapshot.hasData) {
-                              return Text("Replying to: ${snapshot.data}", style: TextStyle(fontSize: 12, color: Colors.grey));
-                            } else {
-                              return Text("Replying to: Unknown", style: TextStyle(fontSize: 12, color: Colors.grey));
-                            }
-                          },
-                        ),
-                      if (messageType == "text") Text(messageText, style: TextStyle(fontSize: 16)),
-                      if (messageType == "emoji") Text(messageText, style: TextStyle(fontSize: 30)),
-                      if (messageType == "image") Image.network(messageText, width: 150),
-                      Text(formattedTime, style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      // Show reactions below messages
-                      if (reactionCounts.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 5),
-                          child: Row(
-                            children: reactionCounts.entries.map((e) {
-                              return GestureDetector(
-                                onTap: () => _addReaction(messageId, e.key), // Allows undoing reaction
-                                child: Container(
-                                  margin: EdgeInsets.only(right: 5),
-                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: Colors.grey.shade300),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(e.key, style: TextStyle(fontSize: 16)), // Emoji
-                                      SizedBox(width: 4),
-                                      Text("${e.value}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)), // Count
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-   */
   void _addReaction(String messageId, String emoji) async {
     DocumentReference messageRef = FirebaseFirestore.instance
         .collection("communities")
@@ -1309,26 +1044,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           style: GoogleFonts.pacifico(fontSize: 20),
         ),
         backgroundColor: Colors.deepPurpleAccent,
-        /*actions: [
-          IconButton(
-            icon: Icon(LucideIcons.search),
-            onPressed: () {},
-          ),
-        ],
 
-         */
       ),
-      /*appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(backgroundImage: NetworkImage(widget.communityLogo)),
-            SizedBox(width: 10),
-            Text(widget.communityName),
-          ],
-        ),
-      ),
-
-       */
       body: Column(
         children: [
           Expanded(
@@ -1351,9 +1068,45 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 var messages = snapshot.data!.docs;
                 return ListView.builder(
                   reverse: true,
+                  itemCount: messages.length + 1, // Extra space for the intro message
+                  itemBuilder: (context, index) {
+                    if (index == messages.length) {
+                      // Show Chat Start Indicator
+                      return Column(
+                        children: [
+                          SizedBox(height: 10),
+                          CircleAvatar(
+                            radius: 40,
+                            backgroundImage: NetworkImage(widget.communityLogo),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            widget.communityName,
+                            style: GoogleFonts.pacifico(fontSize: 20, color: Colors.deepPurple),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Text(
+                              "Welcome to ${widget.communityName} Chatroom!\nStart your conversation and make your day😊",
+                              textAlign: TextAlign.center,
+                              style:  GoogleFonts.pacifico(fontSize: 15),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return buildMessage(messages[index]); // Normal messages
+                  },
+                );
+
+                /*return ListView.builder(
+                  reverse: true,
                   itemCount: messages.length,
                   itemBuilder: (context, index) => buildMessage(messages[index]),
                 );
+
+                 */
               },
             ),
           ),

@@ -96,6 +96,7 @@ class _JoinCommunityScreenState extends State<JoinCommunityScreen> {
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lottie/lottie.dart';
 
 class JoinCommunityScreen extends StatefulWidget {
   @override
@@ -141,7 +142,7 @@ class _JoinCommunityScreenState extends State<JoinCommunityScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.purple, // Choose a fancy color for the AppBar
+        backgroundColor: Colors.deepPurpleAccent, // Choose a fancy color for the AppBar
         elevation: 5,  // Optional: adds some shadow for a fancy effect
       ),
       body: FutureBuilder<QuerySnapshot>(
@@ -160,8 +161,30 @@ class _JoinCommunityScreenState extends State<JoinCommunityScreen> {
                 (community) => !joinedCommunities.contains(community.id),
           ).toList();
 
-          if (filteredCommunities.isEmpty) {
+         /* if (filteredCommunities.isEmpty) {
             return Center(child: Text("No new communities available"));
+          }
+
+          */
+
+          if (filteredCommunities.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset('assets/animations/no_join.json', height: 200),
+                  SizedBox(height: 20),
+                  Text(
+                    "No new communities available",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: 'Pacifico',
+                      color: Colors.deepPurpleAccent,
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
 
           return ListView.builder(

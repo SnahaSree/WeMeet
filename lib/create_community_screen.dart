@@ -475,7 +475,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
           "Create Community",
           style: GoogleFonts.pacifico(fontSize: 24), // Custom font for the title
         ),
-        backgroundColor: Colors.purple, // Purple color for app bar
+        backgroundColor: Colors.deepPurpleAccent, // Purple color for app bar
       ),
       body: SingleChildScrollView(
     child: Padding(
@@ -516,7 +516,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                   style: GoogleFonts.poppins(fontSize: 18), // Fancy font for text
                 ),
                 IconButton(
-                  icon: Icon(Icons.camera_alt, color: Colors.purple),
+                  icon: Icon(Icons.camera_alt, color: Colors.deepPurpleAccent),
                   onPressed: () => _pickImage(ImageSource.gallery, true),
                 ),
               ],
@@ -543,7 +543,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                   style: GoogleFonts.poppins(fontSize: 18), // Fancy font for text
                 ),
                 IconButton(
-                  icon: Icon(Icons.camera_alt, color: Colors.purple),
+                  icon: Icon(Icons.camera_alt, color: Colors.deepPurpleAccent),
                   onPressed: () => _pickImage(ImageSource.gallery, false),
                 ),
               ],
@@ -567,7 +567,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                 ? CircularProgressIndicator()
                 : ElevatedButton(
               onPressed: _createCommunity,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple), // Purple button color
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurpleAccent), // Purple button color
               child: Text(
                 "Create Community",
                 style: GoogleFonts.poppins(fontSize: 18), // Fancy font for button text

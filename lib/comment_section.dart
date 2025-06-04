@@ -235,7 +235,7 @@ class _CommentSectionState extends State<CommentSection> {
       backgroundColor: Colors.purple[50],
       title: Text(
         "Comments",
-        style: TextStyle(fontFamily: 'DancingScript', fontSize: 24, color: Colors.purple[900]),
+        style: TextStyle(fontFamily: 'DancingScript', fontSize: 24, color: Colors.deepPurpleAccent),
       ),
       content: SingleChildScrollView(
         child: Column(
@@ -271,7 +271,7 @@ class _CommentSectionState extends State<CommentSection> {
                       contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                       leading: CircleAvatar(
                         radius: 20,
-                        backgroundColor: Colors.purple,
+                        backgroundColor: Colors.deepPurpleAccent,
                         child: Icon(LucideIcons.user, color: Colors.white),
                       ),
                       title: Text(text, style: TextStyle(fontFamily: 'Lobster', fontSize: 16)),
@@ -290,9 +290,9 @@ class _CommentSectionState extends State<CommentSection> {
                             value: 'edit',
                             child: Row(
                               children: [
-                                Icon(LucideIcons.dot, color: Colors.purple),
+                                Icon(LucideIcons.dot, color: Colors.deepPurpleAccent),
                                 SizedBox(width: 8),
-                                Text("Edit Comment", style: TextStyle(color: Colors.purple)),
+                                Text("Edit Comment", style: TextStyle(color: Colors.deepPurpleAccent)),
                               ],
                             ),
                           ),
@@ -300,9 +300,9 @@ class _CommentSectionState extends State<CommentSection> {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(LucideIcons.trash, color: Colors.purple),
+                                Icon(LucideIcons.trash, color: Colors.deepPurpleAccent),
                                 SizedBox(width: 8),
-                                Text("Delete Comment", style: TextStyle(color: Colors.purple)),
+                                Text("Delete Comment", style: TextStyle(color: Colors.deepPurpleAccent)),
                               ],
                             ),
                           ),
@@ -319,11 +319,11 @@ class _CommentSectionState extends State<CommentSection> {
               controller: _commentController,
               decoration: InputDecoration(
                 hintText: "Add a comment...",
-                hintStyle: TextStyle(fontFamily: 'Lobster', color: Colors.purple[700]),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.purple)),
+                hintStyle: TextStyle(fontFamily: 'Lobster', color: Colors.deepPurpleAccent[700]),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.deepPurpleAccent)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.purple[700]!),
+                  borderSide: BorderSide(color: Colors.deepPurpleAccent[700]!),
                 ),
               ),
             ),
@@ -336,11 +336,11 @@ class _CommentSectionState extends State<CommentSection> {
             _addComment();
             Navigator.pop(context);
           },
-          child: Text("Add Comment", style: TextStyle(color: Colors.purple[700])),
+          child: Text("Add Comment", style: TextStyle(color: Colors.deepPurpleAccent[700])),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text("Cancel", style: TextStyle(color: Colors.purple[700])),
+          child: Text("Cancel", style: TextStyle(color: Colors.deepPurpleAccent[700])),
         ),
       ],
     );
@@ -378,10 +378,10 @@ class _CommentSectionState extends State<CommentSection> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Edit Comment", style: TextStyle(color: Colors.purple[900])),
+          title: Text("Edit Comment", style: TextStyle(color: Colors.deepPurpleAccent[900])),
           content: TextField(
             controller: _editCommentController,
-            decoration: InputDecoration(hintText: "Edit your comment", hintStyle: TextStyle(color: Colors.purple[700])),
+            decoration: InputDecoration(hintText: "Edit your comment", hintStyle: TextStyle(color: Colors.deepPurpleAccent[700])),
           ),
           actions: [
             TextButton(
@@ -389,11 +389,11 @@ class _CommentSectionState extends State<CommentSection> {
                 _updateComment(commentId, _editCommentController.text);
                 Navigator.pop(context);
               },
-              child: Text("Save", style: TextStyle(color: Colors.purple[700])),
+              child: Text("Save", style: TextStyle(color: Colors.deepPurpleAccent[700])),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel", style: TextStyle(color: Colors.purple[700])),
+              child: Text("Cancel", style: TextStyle(color: Colors.deepPurpleAccent[700])),
             ),
           ],
         );

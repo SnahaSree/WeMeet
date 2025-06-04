@@ -45,9 +45,8 @@ class MyApp extends StatelessWidget {
               routes: {
                 '/login': (context) => OnboardingScreen(),
               },
-              home: Stack(
-                children: [
-                  StreamBuilder<User?>(
+              home: networkController.isConnected
+                  ?StreamBuilder<User?>(
                     stream: FirebaseAuth.instance.authStateChanges(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.active) {
@@ -63,14 +62,23 @@ class MyApp extends StatelessWidget {
                       }
                       return const Center(child: CircularProgressIndicator());
                     },
-                  ),
+                  )
+
+            /*if (!networkController.isConnected)
+              Positioned.fill(
+                child: NoNetworkScreen(),
+              ),
+
+
+             */
 
                   // Show No Network Screen as an overlay if disconnected
-                  if (!networkController.isConnected)
-                    const NoNetworkScreen(),
-                ],
-              ),
-            );
+                  //if (!networkController.isConnected)
+                    :const NoNetworkScreen(),
+
+              );
+
+
           },
         );
       },

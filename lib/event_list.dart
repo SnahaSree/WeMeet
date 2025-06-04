@@ -588,6 +588,7 @@ class _EventListPageState extends State<EventListPage> {
 }*/
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'event_details.dart';
 import 'package:intl/intl.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -595,6 +596,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'chat_list_screen.dart';
 import 'home_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'notification_screen.dart';
 
 class EventListPage extends StatefulWidget {
   @override
@@ -612,7 +614,7 @@ class _EventListPageState extends State<EventListPage> {
           "Live & Upcoming Events",
           style: GoogleFonts.pacifico(fontSize: 24),
         ),
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.deepPurpleAccent,
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('events').snapshots(),
@@ -646,6 +648,26 @@ class _EventListPageState extends State<EventListPage> {
               var validEvents = filteredEvents.where((event) {
                 return communityDocs.any((community) => community.id == event['communityId']);
               }).toList();
+
+              if (validEvents.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Lottie.asset('assets/animations/no_events.json', height: 200),
+                      SizedBox(height: 20),
+                      Text(
+                        "No live or upcoming events available.",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: 'Pacifico',
+                          color: Colors.deepPurpleAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
               return ListView.builder(
                 itemCount: validEvents.length,
@@ -684,7 +706,7 @@ class _EventListPageState extends State<EventListPage> {
         index: _selectedIndex,
         height: 60,
         backgroundColor: Colors.transparent,
-        color: Colors.purple,
+        color: Colors.deepPurpleAccent,
         animationCurve: Curves.easeInOut,
         animationDuration: Duration(milliseconds: 300),
         items: [
@@ -718,6 +740,13 @@ class _EventListPageState extends State<EventListPage> {
               context,
               MaterialPageRoute(
                 builder: (context) => EventListPage(),
+              ),
+            );
+          }else if(index==3){
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NotificationScreen(),
               ),
             );
           }
