@@ -28,7 +28,7 @@ class CommunityPage extends StatefulWidget {
     required this.communityLogo,
     required this.communityCoverPic,
     required this.communityDescription,
-    //required this. chatRoomId,
+    //required this.scrollToPostId,
   });
 
   @override
