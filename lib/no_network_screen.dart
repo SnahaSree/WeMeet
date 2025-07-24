@@ -69,5 +69,40 @@ class _NoNetworkScreenState extends State<NoNetworkScreen> {
       ),
     );
   }
+  //long method(extract method)
+/*
+@override
+Widget build(BuildContext context) {
+  var networkController = Provider.of<NetworkController>(context);
+
+  return Scaffold(
+    backgroundColor: Colors.black.withOpacity(0.8),
+    body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildLottieAnimation(),
+          const SizedBox(height: 20),
+          const Text(
+            "No Internet Connection",
+            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          _buildRetryButton(networkController),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildLottieAnimation() {
+  return Lottie.asset(
+    'assets/animations/no_network.json',
+    width: 200,
+    repeat: true,
+  );
+}
+
+ */
 }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+//enum AppTheme { light, dark }
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
 
@@ -19,6 +19,29 @@ class ThemeProvider with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkMode', isDark); // Save theme state
   }
+
+
+
+
+
+
+  //primitive obssesion(Replace Data Value with Object)
+
+
+/*Future<void> toggleTheme(AppTheme theme) async {
+  _themeMode = theme == AppTheme.dark ? ThemeMode.dark : ThemeMode.light;
+  notifyListeners();
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('appTheme', theme.name);
+  }
+
+
+ */
+
+
+
+
 
   Future<void> _loadTheme() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

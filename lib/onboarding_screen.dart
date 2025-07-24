@@ -6,11 +6,22 @@ class OnboardingScreen extends StatefulWidget {
   _OnboardingScreenState createState() => _OnboardingScreenState();
 }
 
+/*class OnboardingPageData {
+  final String image;
+  final String text;
+
+  OnboardingPageData({required this.image, required this.text});
+}
+
+ */
+
+
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
   // Onboarding pages content
+
   final List<Map<String, String>> onboardingData = [
     {
       "image": "assets/image1.png", // Add your image assets
@@ -26,6 +37,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
   ];
 
+//data clumpes
+  /*final List<OnboardingPageData> onboardingPages = [
+    OnboardingPageData(
+      image: "assets/image1.png",
+      text: "Welcome to WeMeet!! Connect with friends...",
+    ),
+    OnboardingPageData(
+      image: "assets/image2.png",
+      text: "Mindblowing and great Experience...",
+    ),
+  ];
+
+   */
   // Navigate to Login/Signup screen
   void _goToLoginScreen() {
     Navigator.pushReplacement(

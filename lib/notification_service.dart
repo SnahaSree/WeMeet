@@ -3,15 +3,25 @@ import 'notification_model.dart';
 
 class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+//dupllicate Code
+ /*CollectionReference _userNotifications(String userId) {
+    return _firestore.collection('users').doc(userId).collection('notifications');
+  }
+
+  */
 
   // Function to add a notification to Firestore
   Future<void> addNotification(String userId, NotificationModel notification) async {
     try {
       // Add the notification to the user's notifications subcollection
+
       await _firestore
           .collection('users')
           .doc(userId)
           .collection('notifications')
+
+
+      //await _userNotifications(userId)
           .add(notification.toMap());
     } catch (e) {
       print("Error adding notification: $e");
@@ -21,10 +31,15 @@ class NotificationService {
   // Function to mark a notification as read
   Future<void> markAsRead(String userId, String notificationId) async {
     try {
+      ///*
       await _firestore
+
           .collection('users')
           .doc(userId)
           .collection('notifications')
+
+       //*/
+      //await _userNotifications(userId)
           .doc(notificationId)
           .update({'isRead': true});
     } catch (e) {

@@ -236,5 +236,105 @@ class _JoinCommunityScreenState extends State<JoinCommunityScreen> {
       ),
     );
   }
+  //
+//long method(extract method)
+/*
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: _buildAppBar(),
+    body: FutureBuilder<QuerySnapshot>(
+      future: _firestore.collection('communities').get(),
+      builder: (context, snapshot) => _buildCommunityList(snapshot),
+    ),
+  );
 }
 
+PreferredSizeWidget _buildAppBar() {
+  return AppBar(
+    title: Text(
+      "Join Community",
+      style: TextStyle(
+        fontFamily: 'Pacifico',
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    backgroundColor: Colors.deepPurpleAccent,
+    elevation: 5,
+  );
+}
+
+Widget _buildCommunityList(AsyncSnapshot<QuerySnapshot> snapshot) {
+  if (snapshot.connectionState == ConnectionState.waiting) {
+    return Center(child: CircularProgressIndicator());
+  }
+
+  if (snapshot.hasError) {
+    return Center(child: Text("Error: ${snapshot.error}"));
+  }
+
+  final communities = snapshot.data?.docs ?? [];
+  final filteredCommunities = communities
+      .where((community) => !joinedCommunities.contains(community.id))
+      .toList();
+
+  if (filteredCommunities.isEmpty) {
+    return _buildEmptyState();
+  }
+
+  return ListView.builder(
+    itemCount: filteredCommunities.length,
+    itemBuilder: (context, index) =>
+        _buildCommunityTile(filteredCommunities[index]),
+  );
+}
+
+Widget _buildEmptyState() {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Lottie.asset('assets/animations/no_join.json', height: 200),
+        SizedBox(height: 20),
+        Text(
+          "No new communities available",
+          style: TextStyle(
+            fontSize: 18,
+            fontFamily: 'Pacifico',
+            color: Colors.deepPurpleAccent,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildCommunityTile(QueryDocumentSnapshot community) {
+  return ListTile(
+    leading: CircleAvatar(
+      backgroundImage: NetworkImage(community['logo']),
+      radius: 30,
+    ),
+    title: Text(
+      community['name'],
+      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    ),
+    subtitle: Text(community['description']),
+    trailing: ElevatedButton.icon(
+      onPressed: () => _joinCommunity(community.id),
+      icon: Icon(Icons.group_add, color: Colors.white),
+      label: Text("Join", style: TextStyle(color: Colors.white)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.purple,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    ),
+  );
+}
+
+ */
+}
