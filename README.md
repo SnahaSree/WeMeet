@@ -501,6 +501,6 @@ This project is open source. Ensure appropriate licensing is added.
 
 ---
 
-**Made with 💜 by the WeMeet Community**
+
 
 Connect, Share, and Celebrate Together! 🦋✨
